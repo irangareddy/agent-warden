@@ -1,6 +1,6 @@
 # Wagent
 
-**Wagent is a warden for your coding agents.** It checks every tool call before it runs, stops the risky ones, and turns each catch into a rule the rest of your fleet can use. Rules travel through Flower's coordinator, and each agent tests a new rule against its own normal work before adopting it, so bad or overly broad rules are turned away. Only the rule is shared, never code, files or prompts. When an action depends on context, like merging to production, Wagent asks you instead of guessing, and you review every rule the fleet learns.
+**Wagent is a warden for your coding agents.** It checks every tool call before it runs, stops the risky ones, and turns each catch into a rule the rest of your fleet can use. Rules travel through Flower's coordinator, and each agent tests a new rule against its own normal work before adopting it, so bad or overly broad rules are turned away. Only the rule is shared, never code, files or prompts. When an action depends on context, like merging to production, Wagent asks you instead of guessing, and you can review every rule the fleet learns.
 
 Built at the Flower Collaborative Agent Hackathon, Stanford, September 29, 2026.
 
