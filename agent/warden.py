@@ -35,7 +35,7 @@ BUILT_IN_RULES = [
     Rule(
         id="fs-path-escape",
         family="sandbox_escape",
-        tool=r".*",
+        tool=r"^(?:read_file|list_directory|Read|Edit|Write|MultiEdit|NotebookEdit)$",
         pattern=r"\.\./|/etc/|/root/|/proc/|/var/run/|/home/[^/\"]+/\.",
         reason="Reads outside the agent's allowed folder",
     ),
@@ -43,7 +43,14 @@ BUILT_IN_RULES = [
         id="cred-keys",
         family="credential_access",
         tool=r".*",
-        pattern=r"/keys\b|\.ssh|id_rsa|id_ecdsa|\.pem\b|supernode-\d|hosts\.yml|credentials|\.env\b",
+        pattern=(
+            r"(?:^|[/\\])keys(?=$|[/\\\"'\s])|(?:^|[/\\])\.ssh(?=$|[/\\\"'\s])|"
+            r"(?:^|[/\\])id_(?:rsa|ecdsa)(?=$|[/\\\"'\s])|\.pem\b|"
+            r"supernode-\d|hosts\.yml|(?:^|[/\\])credentials\.json\b|"
+            r"(?:^|[/\\])\.aws[/\\]credentials(?=$|[/\\\"'\s])|"
+            r"(?:^|[/\\\s])\.env(?!\.(?:example|sample|template)(?=$|[/\\\"'\s]))"
+            r"(?:\.[A-Za-z0-9_-]+)?(?=$|[/\\\"'\s])"
+        ),
         reason="Touches keys or credentials",
     ),
     Rule(

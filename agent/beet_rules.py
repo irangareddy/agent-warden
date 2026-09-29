@@ -6,13 +6,15 @@ from agent.warden import Rule
 SHELL_TOOLS = r"^(?:Bash|exec|shell)$"
 FILE_AND_SHELL_TOOLS = r"^(?:Bash|exec|shell|Read|Edit|Write|read_file|list_directory)$"
 WEB_TOOLS = r"^(?:web_fetch|web_search)$"
+GIT_COMMAND = r"\bgit(?:\s+-C\s+[^\s]+)?"
+GIT_PUSH = GIT_COMMAND + r"\s+push\b"
 
 
 BEET_RULES: list[Rule] = [
     Rule(
         id="beet-permissions-codex-settings",
         family="permissions",
-        tool=r"^(?:Edit|Write)$",
+        tool=r"^(?:Edit|Write|MultiEdit|NotebookEdit|apply_patch)$",
         pattern=r"(?:^|[/\\])\.codex[/\\](?:config\.toml|rules(?:[/\\]|[\"']))",
         reason="Prevents agents from weakening Codex approval settings or prompt rules.",
     ),
@@ -22,7 +24,11 @@ BEET_RULES: list[Rule] = [
         tool=SHELL_TOOLS,
         pattern=(
             r"\A(?s:(?=.*(?:^|[/\\])\.codex[/\\](?:config\.toml|rules[/\\]))"
-            r"(?=.*(?:\brm\b|\bmv\b|\btruncate\b|\bsed\s+-i\b|\bperl\s+-pi\b|>>?|\btee\b))"
+            r"(?=.*(?:\brm\b|\bmv\b|\btruncate\b|\bsed\s+-i\b|\bperl\s+-pi\b|"
+            r">>?|\btee\b|\bwrite_text\s*\(|"
+            r"\bopen\s*\([^\r\n]{0,1000}?(?:\\)*[\"'](?:w|a|x)(?:[bt+]{0,3})?"
+            r"(?:\\)*[\"']|"
+            r"\*\*\*\s+(?:Update|Add|Delete)\s+File:))"
             r")"
         ),
         reason="Prevents shell commands from changing Codex approval settings or deleting prompt rules.",
@@ -67,8 +73,9 @@ BEET_RULES: list[Rule] = [
         family="git-history",
         tool=SHELL_TOOLS,
         pattern=(
-            r"\bgit\s+push(?=(?:\\.|[^\"\\\r\n])*"
-            r"(?:--force(?!-with-lease)(?:\b|=)|(?<!\S)-f(?!\S)))"
+            GIT_PUSH
+            + r"[^\r\n]*(?:--force(?!-with-lease)(?:\b|=)|(?<!\S)-f(?!\S)|"
+            r"(?<!\S)\+(?:HEAD(?=:)|refs/heads/)[^\s;&|\"']*)"
         ),
         reason="Blocks force pushes that can rewrite remote Git history.",
     ),
@@ -77,7 +84,7 @@ BEET_RULES: list[Rule] = [
         family="git-history",
         tool=SHELL_TOOLS,
         pattern=(
-            r"\bgit\s+push(?=(?:\\.|[^\"\\\r\n])*--force-with-lease(?:\b|=))"
+            GIT_PUSH + r"(?=(?:\\.|[^\"\\\r\n])*--force-with-lease(?:\b|=))"
             r"(?=(?:\\.|[^\"\\\r\n])*[\s:=](?:\\\"|[\"'])?(?:refs/heads/)?"
             r"(?:main|master|develop|production|release(?:[/_-][\w.-]+)?)"
             r"(?=(?:\\\"|[\s:\"'])))"
@@ -89,7 +96,7 @@ BEET_RULES: list[Rule] = [
         family="git-history",
         tool=SHELL_TOOLS,
         pattern=(
-            r"\bgit\s+push(?=(?:\\.|[^\"\\\r\n])*--force-with-lease(?:\b|=))"
+            GIT_PUSH + r"(?=(?:\\.|[^\"\\\r\n])*--force-with-lease(?:\b|=))"
             r"(?!(?:\\.|[^\"\\\r\n])*(?:codex|feature)/[A-Za-z0-9._/-]+"
             r"(?=(?:\\\"|[\s:\"'])))"
         ),
@@ -129,7 +136,11 @@ BEET_RULES: list[Rule] = [
         id="beet-deletion-worktree",
         family="deletion",
         tool=SHELL_TOOLS,
-        pattern=r"\bgit\s+worktree\s+remove\b",
+        pattern=(
+            GIT_COMMAND + r"\s+worktree\s+remove\b|"
+            r"\brm\s+(?:-[A-Za-z]*r[A-Za-z]*f[A-Za-z]*|-[A-Za-z]*f[A-Za-z]*r[A-Za-z]*)"
+            r"\s+(?:--\s+)?[^\r\n;&|]+&&\s*" + GIT_COMMAND + r"\s+worktree\s+prune\b"
+        ),
         reason="Blocks removal of Git worktrees used by parallel coding agents.",
     ),
     Rule(
