@@ -39,6 +39,15 @@ Built at the Flower Collaborative Agent Hackathon, Stanford, September 29, 2026.
 
 The rules were tuned on this same history, and we wrote the synthetic cases ourselves. These numbers show the mechanism works; they are not yet an independent accuracy score. A blind red team and a much larger held-out set are next.
 
+**Does sharing help, compared with each agent alone?** Four agents, each guarding a different area (customer data, secrets, publishing, git), face 52 attacks landing on random agents, 30 random orders (`python3.12 eval/fleet_sharing.py`):
+
+| Fleet | Attacks every agent would stop | Agents protected per attack | Caught where it landed |
+|---|---|---|---|
+| Each agent alone | 10% | 1.1 of 4 | 28% |
+| Sharing rules | **31%** | **1.8 of 4** | 33% |
+
+Sharing mostly spreads protection against attacks the fleet has already seen; it helps less with brand-new variants, because widening generalizes file paths well and commands less so. The attacks are ours.
+
 **On real agent work we never saw.** We replayed public SWE-agent runs from [nebius/SWE-agent-trajectories](https://huggingface.co/datasets/nebius/SWE-agent-trajectories) (80,036 runs fixing real GitHub issues) through the default packs (`python3.12 eval/replay_trajectories.py --offset N --trajectories M`):
 
 | Slice | Commands (unique) | Blocked | Asked |

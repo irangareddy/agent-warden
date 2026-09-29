@@ -86,5 +86,12 @@
     "pattern": "(?:\\bxcrun\\s+iTMSTransporter\\b[^\\r\\n]{0,1000}(?<!\\S)-m\\s+upload\\b|\\basc\\s+builds?\\s+upload\\b|\\b(?:app[ -]?store|testflight)\\b(?:\\\\.|[^\\\"\\\\\\r\\n])*\\bupload\\b)",
     "reason": "Uploading a build to TestFlight or the App Store needs human confirmation.",
     "action": "ask"
+  },
+  {
+    "id": "publishing-package-registries",
+    "family": "publishing",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\b(?:twine\\s+upload|gem\\s+push|cargo\\s+publish|poetry\\s+publish|uv\\s+publish|flit\\s+publish|hatch\\s+publish)\\b(?![^\\n]*--dry-run)",
+    "reason": "Blocks publishing a package to PyPI, RubyGems or crates.io; agents have shipped malicious packages this way."
   }
 ]
