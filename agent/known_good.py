@@ -21,8 +21,18 @@ KNOWN_GOOD = [
     _fc("read_file", path="/opt/flwr/app/README.md"),
     _fc("read_file", path="/opt/flwr/app/config.toml"),
     _fc("read_file", path="/tmp/agent-warden/decisions.jsonl"),
-    _fc("push_reply_message", reply="Site A: 41 cardiology patients over 70; mean age 76.2"),
-    _fc("push_reply_message", reply="No matching records at this site."),
-    _fc("send_message", node_id=2, payload="How many endocrinology patients under 30?"),
-    _fc("sample_nodes", k=3),
+    # Beet fleet demo nodes
+    _fc("read_file", path="/data/ios/EventsView.swift"),
+    _fc("read_file", path="/data/ios/TODO.md"),
+    _fc("read_file", path="/data/backend/orders.ts"),
+    _fc("read_file", path="/data/qa/test_report.md"),
+    _fc("read_file", path="/data/release/CHANGELOG.md"),
+    _fc("list_directory", path="/data/backend"),
+    # Real Flower Grid tools
+    _fc("get_nodes", sample_size=None),
+    _fc("push_messages", messages=[{"dst_node_id": "4172973173130116852",
+        "payload": "List your files and give a one-line status.", "reply_to_message_id": None}]),
+    _fc("pull_messages", message_ids=["m-1", "m-2"], timeout=60),
+    _fc("push_reply_message", payload="Backend: 3 files, order flow OK, no failing tests."),
+    _fc("push_reply_message", payload="Site A: 41 cardiology patients over 70; mean age 76.2"),
 ]

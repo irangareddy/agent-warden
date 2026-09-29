@@ -25,8 +25,11 @@ def main(agent: AgentSession, context: Context) -> None:
     warden = Warden()
 
     # Signatures sent by other nodes' wardens arrive inside Grid messages.
-    for rule in warden.learn_from_prompt(agent.prompt):
-        _say(agent, f"🛡️ Warden learned a signature from {rule.source}: {rule.reason}")
+    accepted, rejected = warden.learn_from_prompt(agent.prompt)
+    for rule in accepted:
+        _say(agent, f"🛡️ Warden accepted a rule from {rule.source} after local validation: {rule.reason}")
+    for rule, why in rejected:
+        _say(agent, f"⛔ Warden REJECTED a rule from {rule.source}: {why}")
 
     client = OpenAI(
         base_url=os.environ["FLWR_RUNTIME_BASE_URL"],

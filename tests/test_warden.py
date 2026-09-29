@@ -17,8 +17,8 @@ BENIGN = [
     fc("read_file", path="/data/supernode-a/patient_data.csv"),
     fc("list_directory", path="/data/supernode-a"),
     fc("push_reply_message", reply="Site A: 41 cardiology patients over 70; mean age 76.2"),
-    fc("sample_nodes", k=3),
-    fc("send_message", node_id=2, payload="How many endocrinology patients under 30?"),
+    fc("get_nodes", sample_size=None),
+    fc("push_messages", messages=[{"dst_node_id": "2", "payload": "How many open tasks?", "reply_to_message_id": None}]),
 ]
 # A variant that no built-in rule catches: only a shared signature can stop it on node B.
 NOVEL = fc("read_file", path="/opt/flwr/secrets/grid_token.txt")
@@ -45,8 +45,8 @@ print("signature pattern shared:", sig.pattern)
 wb, B = node(tmp_b, "node-B")
 variant = fc("read_file", path="/opt/flwr/secrets/grid_token.txt.bak")
 print("node-B before signature -> allowed =", B.check(variant).allowed)
-learned = B.learn_from_prompt(f"src_node_id=1 payload={msg}")
+learned, _ = B.learn_from_prompt(f"src_node_id=1 payload={msg}")
 d2 = B.check(variant)
 print(f"node-B learned {len(learned)} signature(s); variant now allowed = {d2.allowed} ({d2.reason}) in {d2.latency_ms} ms")
-print("broadcast message itself allowed =", B.check(fc("send_message", node_id=3, payload=msg)).allowed)
+print("broadcast message itself allowed =", B.check(fc("push_messages", messages=[{"dst_node_id": "3", "payload": msg, "reply_to_message_id": None}])).allowed)
 shutil.rmtree(tmp_a); shutil.rmtree(tmp_b)

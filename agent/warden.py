@@ -169,25 +169,62 @@ class Warden:
                 return narrow, report
         return narrow, report
 
-    def learn(self, rule: Rule) -> bool:
-        """Add a signature from another node. Returns False if it was already known."""
+    def validate(self, rule: Rule) -> tuple[bool, str]:
+        """Test a rule against this node's own normal work before trusting it.
+
+        A shared rule is only a proposal. It is rejected if it is not a valid
+        pattern, if it would match almost anything, or if it would block any
+        call in this node's known-good set.
+        """
+        from agent.known_good import KNOWN_GOOD
+
+        try:
+            compiled = re.compile(rule.pattern, re.I | re.S)
+        except re.error as err:
+            return False, f"invalid pattern ({err})"
+        probes = ["", "a", "/", "read_file", '{"path": "/tmp/x"}']
+        if any(compiled.search(p) for p in probes):
+            return False, "pattern is too broad (matches almost anything)"
+        blocked = [g["arguments"] for g in KNOWN_GOOD if compiled.search(g["arguments"])]
+        if blocked:
+            return False, f"would block {len(blocked)} normal action(s) on this node"
+        return True, "passed local validation"
+
+    def learn(self, rule: Rule, validate: bool = True) -> bool:
+        """Adopt a rule. Rules from other nodes must pass local validation first."""
         if any(r.pattern == rule.pattern for r in self.shared):
             return False
+        if validate:
+            ok, why = self.validate(rule)
+            self._log_rule(rule, accepted=ok, why=why)
+            if not ok:
+                return False
         self.shared.append(rule)
         _save_shared(self.shared)
         return True
 
-    def learn_from_prompt(self, prompt: str) -> list[Rule]:
-        """Pick up signatures another node's warden sent in a Grid message."""
-        learned = []
+    def learn_from_prompt(self, prompt: str) -> tuple[list[Rule], list[tuple[Rule, str]]]:
+        """Pick up signatures another node sent. Returns (accepted, rejected with reason)."""
+        accepted, rejected = [], []
         for raw in re.findall(re.escape(SIGNATURE_PREFIX) + r"(\{.*?\})(?=\s|$)", prompt, re.S):
             try:
                 rule = Rule(**json.loads(raw))
             except (json.JSONDecodeError, TypeError):
                 continue
-            if self.learn(rule):
-                learned.append(rule)
-        return learned
+            ok, why = self.validate(rule)
+            if ok and self.learn(rule, validate=False):
+                self._log_rule(rule, accepted=True, why=why)
+                accepted.append(rule)
+            elif not ok:
+                self._log_rule(rule, accepted=False, why=why)
+                rejected.append((rule, why))
+        return accepted, rejected
+
+    def _log_rule(self, rule: Rule, accepted: bool, why: str) -> None:
+        os.makedirs(STATE_DIR, exist_ok=True)
+        with open(os.path.join(STATE_DIR, "rule_decisions.jsonl"), "a", encoding="utf-8") as f:
+            f.write(json.dumps({"node": self.node_name, "accepted": accepted, "why": why,
+                                "ts": time.time(), **asdict(rule)}) + "\n")
 
     def _log(self, decision: Decision) -> Decision:
         os.makedirs(STATE_DIR, exist_ok=True)
