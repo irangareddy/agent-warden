@@ -13,7 +13,7 @@ Prompts ask agents to behave. They don't guarantee it. Wagent enforces the rules
 ## Try it in 30 seconds (no network)
 
 ```bash
-git clone https://github.com/irangareddy/agent-warden && cd agent-warden
+git clone https://github.com/irangareddy/wagent && cd wagent
 uv sync
 bash scripts/demo.sh
 ```
@@ -107,7 +107,7 @@ docker compose -f fleet/compose.yaml up
 Send prompts from the terminal (or use `uv run flwr chat`, then `/load .`):
 
 ```bash
-uv run python tools/ask.py --federation @<you>/agent-warden-demo "Ask every node for a one-line status."
+uv run python tools/ask.py --federation @<you>/wagent-demo "Ask every node for a one-line status."
 ```
 
 ### Scripted attack (demo fleets only)
@@ -115,7 +115,7 @@ uv run python tools/ask.py --federation @<you>/agent-warden-demo "Ask every node
 A node simulates an attack only if its operator sets `WARDEN_ALLOW_RED_TEAM=1` on that machine; a prompt alone can't switch it on. The demo fleet sets it.
 
 ```bash
-uv run python tools/ask.py --federation @<you>/agent-warden-demo "[SCRIPTED-ATTACK] target=Backend read=/data/backend/.env"
+uv run python tools/ask.py --federation @<you>/wagent-demo "[SCRIPTED-ATTACK] target=Backend read=/data/backend/.env"
 ```
 
 ## Three outcomes: allow, block, ask
