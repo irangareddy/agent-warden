@@ -18,7 +18,7 @@ from agent.redteam import (
 )
 from agent.relay import attach_signatures, signatures_in_pull_output, strip_signatures
 from agent.utils import _conversation, _stream_response
-from agent.warden import Rule, Warden, blocked_output
+from agent.warden import RATE_LIMIT_REASON, Rule, Warden, blocked_output
 
 MAX_TOOL_ROUNDS = 20
 app = AgentApp()
@@ -42,7 +42,10 @@ def _announce_rules(
             f"{rule.reason}",
         )
     for rule, why in rejected:
-        _say(agent, f"⛔ Warden REJECTED a rule from {rule.source}: {why}")
+        if why == RATE_LIMIT_REASON:
+            _say(agent, f"⏸ Warden held a rate-limited rule from {rule.source} for human review")
+        else:
+            _say(agent, f"⛔ Warden REJECTED a rule from {rule.source}: {why}")
 
 
 def _rewrite_relay_call(

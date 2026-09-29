@@ -17,7 +17,9 @@ STATE_DIR = os.environ.get("WARDEN_STATE_DIR", "/tmp/agent-warden")
 SIGNATURES_FILE = os.path.join(STATE_DIR, "signatures.json")
 LOG_FILE = os.path.join(STATE_DIR, "decisions.jsonl")
 REJECTED_FILE = os.path.join(STATE_DIR, "rejected.json")
+PENDING_RULES_FILE = os.path.join(STATE_DIR, "pending_rules.jsonl")
 SIGNATURE_PREFIX = "WARDEN_SIGNATURE::"
+RATE_LIMIT_REASON = "rate limited: held for human review"
 
 
 @dataclass
@@ -114,6 +116,23 @@ def _load_rejected() -> list[str]:
         return [pattern for pattern in value if isinstance(pattern, str)]
     except (FileNotFoundError, json.JSONDecodeError, TypeError):
         return []
+
+
+def _rate_limit(name: str, default: int) -> int:
+    try:
+        return max(0, int(os.environ.get(name, default)))
+    except (TypeError, ValueError):
+        return default
+
+
+def _hold_for_review(rule: Rule, why: str) -> None:
+    os.makedirs(STATE_DIR, exist_ok=True)
+    entry = asdict(rule)
+    entry["rule_reason"] = entry["reason"]
+    entry["reason"] = why
+    entry["ts"] = time.time()
+    with open(PENDING_RULES_FILE, "a", encoding="utf-8") as f:
+        f.write(json.dumps(entry) + "\n")
 
 
 class Warden:
@@ -267,6 +286,9 @@ class Warden:
     def learn_from_prompt(self, prompt: str) -> tuple[list[Rule], list[tuple[Rule, str]]]:
         """Pick up signatures another node sent. Returns (accepted, rejected with reason)."""
         accepted, rejected = [], []
+        new_by_source: dict[str, int] = {}
+        max_per_message = _rate_limit("WARDEN_MAX_RULES_PER_MESSAGE", 3)
+        max_per_source = _rate_limit("WARDEN_MAX_RULES_PER_SOURCE", 20)
         # Flower hands a node its message as compact JSON {"src_node_id", "payload"},
         # so unwrap the payload first; otherwise the signature's quotes are escaped.
         text = prompt
@@ -286,15 +308,23 @@ class Warden:
                 why = "previously rejected by a human"
                 self._log_rule(rule, accepted=False, why=why)
                 rejected.append((rule, why))
-            elif ok and self.learn(rule, validate=False):
-                self._log_rule(rule, accepted=True, why=why)
-                accepted.append(rule)
             elif ok:
                 # Already enforced from an earlier run: report it as accepted so
                 # callers (e.g. the scripted probe) see the rule they were sent.
                 existing = next((r for r in self.shared if r.pattern == rule.pattern), None)
                 if existing is not None:
                     accepted.append(existing)
+                elif (
+                    new_by_source.get(rule.source, 0) >= max_per_message
+                    or sum(r.source == rule.source for r in self.shared) >= max_per_source
+                ):
+                    self._log_rule(rule, accepted=False, why=RATE_LIMIT_REASON)
+                    _hold_for_review(rule, RATE_LIMIT_REASON)
+                    rejected.append((rule, RATE_LIMIT_REASON))
+                elif self.learn(rule, validate=False):
+                    self._log_rule(rule, accepted=True, why=why)
+                    accepted.append(rule)
+                    new_by_source[rule.source] = new_by_source.get(rule.source, 0) + 1
             elif not ok:
                 self._log_rule(rule, accepted=False, why=why)
                 rejected.append((rule, why))

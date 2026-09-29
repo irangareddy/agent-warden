@@ -69,6 +69,8 @@ def main() -> int:
             "WARDEN_STATE_DIR",
             "AGENT_WARDEN_FAIL_CLOSED",
             "WARDEN_NODE_NAME",
+            "WARDEN_MAX_RULES_PER_MESSAGE",
+            "WARDEN_MAX_RULES_PER_SOURCE",
         ):
             env.pop(key, None)
         env["HOME"] = str(temp / "home")
@@ -143,7 +145,7 @@ def main() -> int:
         os.environ["WARDEN_RULEPACKS"] = "secrets,git-safety,publishing,sample-project"
         os.environ["WARDEN_RULEPACKS_DIR"] = str(project / ".agent-warden" / "packs")
         os.environ["WARDEN_STATE_DIR"] = str(state_dir)
-        from agent.warden import Rule, Warden
+        from agent.warden import RATE_LIMIT_REASON, Rule, Warden, encode_signature
 
         learned = Rule(
             "learned-review-rule",
@@ -161,6 +163,25 @@ def main() -> int:
         assert "Pending learned rules remain enforced" in listing.stdout
         assert "learned-review-rule" in listing.stdout and "validation=pass" in listing.stdout
         passed("review --list shows a learned pending rule and validation")
+
+        held = Rule(
+            "held-review-rule",
+            "project-policy",
+            "^Bash$",
+            "held-danger-command",
+            "Candidate held by the source quota.",
+            "noisy-node",
+        )
+        os.environ["WARDEN_MAX_RULES_PER_MESSAGE"] = "0"
+        held_accepted, held_rejected = learner.learn_from_prompt(encode_signature(held))
+        os.environ.pop("WARDEN_MAX_RULES_PER_MESSAGE")
+        assert not held_accepted and held_rejected == [(held, RATE_LIMIT_REASON)]
+        listing = run(
+            [str(CLI), "review", "--project", str(project), "--list"], cwd=ROOT, env=env
+        )
+        assert "Rate-limited rules held for human review (not enforced)." in listing.stdout
+        assert "held-review-rule" in listing.stdout and RATE_LIMIT_REASON in listing.stdout
+        passed("review --list shows rate-limited rules as held and not enforced")
 
         approved = run(
             [str(CLI), "review", "--project", str(project), "--approve", learned.id],

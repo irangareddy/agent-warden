@@ -326,6 +326,20 @@ def _print_pending(warden: Any, rules: list[Any], state_dir: Path) -> None:
         )
 
 
+def _print_rate_limited(state_dir: Path) -> None:
+    print("Rate-limited rules held for human review (not enforced).")
+    rules = _read_jsonl(state_dir / "pending_rules.jsonl")
+    if not rules:
+        print("No rate-limited rules held.")
+        return
+    for rule in rules:
+        print(
+            f"{rule.get('id', '?')} | family={rule.get('family', '?')} | "
+            f"source={rule.get('source', '?')} | pattern={rule.get('pattern', '')} | "
+            f"reason={rule.get('reason', '')}"
+        )
+
+
 def _approve(warden: Any, rule: Any, pack_dir: Path, state_dir: Path) -> None:
     path = pack_dir / "rules.json"
     rules = _read_list(path)
@@ -380,6 +394,7 @@ def command_review(args: argparse.Namespace) -> int:
             _approve(warden, rule, pack_dir, state_dir)
     elif args.list:
         _print_pending(warden, pending, state_dir)
+        _print_rate_limited(state_dir)
     else:
         _print_pending(warden, pending, state_dir)
         for rule in pending:
