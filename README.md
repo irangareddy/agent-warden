@@ -80,6 +80,18 @@ Some actions can't be judged from the command alone: `gh pr merge 644` doesn't s
 3. **Performance**: the real-data replay exposed a rule that backtracked for seconds on long commands; after the fix, every rule stays under 50 ms on a 20,000-character adversarial string (tested) and under 1 ms in practice.
 4. **Live**: models sometimes refused a requested attack on their own and sometimes didn't. That inconsistency is the reason the check lives in code. The scripted attack removes the model from the attack path so the demo is reproducible.
 
+### Does it get better over time?
+
+`eval/learning_curve.py` feeds 48 attacks one at a time in random order (30 orders). After each one, Wagent learns: a blocked call becomes an evolved rule, and a missed call is flagged by a human in review and evolved the same way. After every step it is scored on attacks it has **not seen yet**, and on 20 routine calls held out from its known-good set.
+
+| Start | Learns from | Catch on unseen attacks: 0 → 12 → 24 seen | False alarms on held-out routine |
+|---|---|---|---|
+| Default packs | its own blocks + human flags | 79% → 93% → 96% | 0 → 0.5 of 20 |
+| Default packs | its own blocks only | 79% → 81% → 80% | 0 → 0.5 of 20 |
+| No rules at all | its own blocks + human flags | 0% → 23% → 30% | 0 → 0.5 of 20 |
+
+What this shows: learning works when a human flags what got through; on its own, Wagent barely improves, because it only learns from what it already blocks. Learned rules also add a small number of false alarms on unseen normal work, which is why `wagent review` exists. The cases are ours (synthetic), so treat this as a mechanism test, not a real-world score.
+
 ## Run a fleet on Flower SuperGrid
 
 Requires Docker, [uv](https://docs.astral.sh/uv/), and a Flower account with Agent access.
