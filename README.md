@@ -63,6 +63,15 @@ Choose the agents' model with `WARDEN_MODEL` (default `openai/gpt-5.6-terra`). F
 
 Each of the four demo nodes sees only its own folder and its own key, and uses fake data. [fleet/README.md](fleet/README.md) walks through each step.
 
+### Mix models with Nebius
+
+Put `NEBIUS_API_KEY=...` in `fleet/.env`, then run the probe first. The override moves the QA and Release agents to the two Nebius Token Factory models, Kimi-K2.7-Code and MiniMax-M3, while the other agents keep the default. Same rules, different models.
+
+```bash
+uv run --env-file fleet/.env python tools/nebius_probe.py
+docker compose -f fleet/compose.yaml -f fleet/compose.nebius.yaml up -d
+```
+
 To watch one agent's catch protect the others, send the scripted attack. It runs only on machines whose operator set `WARDEN_ALLOW_RED_TEAM=1`, so a prompt alone can't turn it on:
 
 ```bash
@@ -128,6 +137,6 @@ What's not done yet:
 | `tools/` | Setup CLI, prompts from the terminal, private audit replay |
 | `eval/` | Learning-over-time evaluation |
 | `fleet/`, `scripts/` | Demo fleet, setup, one-command demo |
-| `tests/` | The 12 demo suites |
+| `tests/` | The 13 demo suites |
 
 Based on the Flower Collaborative AgentApp template. Apache 2.0.

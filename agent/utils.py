@@ -11,10 +11,25 @@ from openai import OpenAI
 # model id such as "dedicated/flowerai/Kimi-K2.7-Code-1OUHWL", together with the
 # SuperNode's FLWR_MODEL_API_ENDPOINT and FLWR_MODEL_API_KEY.
 MODEL = os.environ.get("WARDEN_MODEL", "openai/gpt-5.6-terra")
+NON_STREAMING_MODEL_PREFIXES = ("flwrlabs/endeavor", "dedicated/")
 STREAM_EVENT_TYPES = {
     "response.output_text.delta",
     "response.reasoning_summary_text.delta",
 }
+
+
+def _model_response_mode(model: str) -> tuple[bool, bool]:
+    """Return whether this model should stream and receive reasoning options."""
+    supports_streaming_and_reasoning = not model.startswith(
+        NON_STREAMING_MODEL_PREFIXES
+    )
+    stream_override = os.environ.get("WARDEN_MODEL_STREAM")
+    should_stream = (
+        stream_override == "1"
+        if stream_override in {"0", "1"}
+        else supports_streaming_and_reasoning
+    )
+    return should_stream, supports_streaming_and_reasoning
 
 # This helps AgentApps construct reply messages correctly
 AGENT_COLLABORATION_INSTRUCTIONS = (
@@ -111,12 +126,14 @@ def _stream_response(
         if is_red_team(agent.prompt)
         else AGENT_COLLABORATION_INSTRUCTIONS + INSTRUCTIONS
     )
-    if MODEL.startswith("flwrlabs/endeavor"):
-        # Endeavor's tool-calling turns end early when streamed, so Flower's
-        # own Endeavor agent calls it without streaming. Do the same, then
-        # emit the text as one delta so chat clients still show it.
+    should_stream, send_reasoning = _model_response_mode(MODEL)
+    reasoning_options = {"reasoning": {"effort": "medium"}} if send_reasoning else {}
+    if not should_stream:
+        # Some providers do not reliably emit Responses streaming events.
+        # Emit their completed text as one delta so chat clients still show it.
         response = client.responses.create(
             model=MODEL,
+            **reasoning_options,
             input=input_items,
             instructions=instructions,
             tools=tools,
@@ -132,7 +149,7 @@ def _stream_response(
     completed_event = None
     stream = client.responses.create(
         model=MODEL,
-        reasoning={"effort": "medium"},
+        **reasoning_options,
         input=input_items,
         instructions=instructions,
         tools=tools,
