@@ -39,6 +39,8 @@ Built at the Flower Collaborative Agent Hackathon, Stanford, September 29, 2026.
 
 The rules were tuned on this same history, and we wrote the synthetic cases ourselves. These numbers show the mechanism works; they are not yet an independent accuracy score. A blind red team and a much larger held-out set are next.
 
+**On real agent work we never saw.** We replayed 500 public SWE-agent runs from [nebius/SWE-agent-trajectories](https://huggingface.co/datasets/nebius/SWE-agent-trajectories) (12,298 commands, 4,365 unique) through the default packs (`python3.12 eval/replay_trajectories.py`). Wagent blocked 3 unique commands, 0.07% (95% range 0.02% to 0.20%), and asked about none. We checked all 3 by hand: each lists a test fixture named like a credentials file (`ls -a tests/test_credentials_admin_tests.json`), so all 3 are false alarms. These runs are ordinary issue-fixing work, so this measures false alarms, not catches.
+
 **Compared with a plain denylist.** On the same 54 risky and 45 routine cases, a denylist of 17 common patterns (`.env`, `id_rsa`, `token`, `push --force`, `rm -rf` and so on) against Wagent's default packs (`python3.12 eval/baseline.py`):
 
 | | Risky caught | Routine wrongly blocked or paused |
