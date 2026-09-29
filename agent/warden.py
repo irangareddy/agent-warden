@@ -21,7 +21,7 @@ SIGNATURE_PREFIX = "WARDEN_SIGNATURE::"
 
 @dataclass
 class Rule:
-    """One pattern the warden blocks."""
+    """One pattern the warden blocks or sends for human approval."""
 
     id: str
     family: str  # "sandbox_escape" | "credential_access" | "data_exfiltration"
@@ -29,6 +29,7 @@ class Rule:
     pattern: str  # regex on the tool call arguments (JSON text)
     reason: str
     source: str = "built-in"  # "built-in", "pack:<name>", or the node that shared it
+    action: str = "block"  # "block" or "ask"
 
 
 BUILT_IN_RULES = [
@@ -82,6 +83,11 @@ class Decision:
     source: str | None
     latency_ms: float
     ts: float
+    action: str = "block"  # "allow", "block", or "ask"
+
+    def __post_init__(self) -> None:
+        if self.allowed and self.action == "block":
+            self.action = "allow"
 
 
 def _load_shared() -> list[Rule]:
@@ -128,12 +134,22 @@ class Warden:
         # (Demo shortcut: a real system would sign these messages.)
         if SIGNATURE_PREFIX in args:
             return self._log(Decision(True, name, "signature-broadcast", None, None, None,
-                                      _ms(start), time.time()))
-        for rule in self.rules:
-            if re.search(rule.tool, name, re.I) and _pattern_matches(rule.pattern, args):
-                return self._log(Decision(False, name, rule.id, rule.family, rule.reason,
-                                          rule.source, _ms(start), time.time()))
-        return self._log(Decision(True, name, None, None, None, None, _ms(start), time.time()))
+                                      _ms(start), time.time(), "allow"))
+        # Blocking rules always take precedence over approval rules, including
+        # when both match the same call.
+        for action in ("block", "ask"):
+            for rule in self.rules:
+                if rule.action != action:
+                    continue
+                if re.search(rule.tool, name, re.I) and _pattern_matches(rule.pattern, args):
+                    # Keep ``allowed`` compatible with block-only callers: an
+                    # approval request is not a hard block. New integrations
+                    # use ``action`` as the authoritative three-way outcome.
+                    return self._log(Decision(action != "block", name, rule.id, rule.family,
+                                              rule.reason, rule.source, _ms(start),
+                                              time.time(), action))
+        return self._log(Decision(True, name, None, None, None, None,
+                                  _ms(start), time.time(), "allow"))
 
     def signature_for(self, decision: Decision, item: dict[str, Any]) -> Rule:
         """Build a shareable rule from a blocked call so other nodes block its variants."""

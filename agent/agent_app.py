@@ -121,6 +121,20 @@ def _guarded_call(
     """Rewrite, check, execute, and learn exactly as the model tool loop does."""
     call_item = _rewrite_relay_call(item, new_rules, accepted_this_run, warden.shared)
     decision = warden.check(call_item)
+    if decision.action == "ask":
+        _say(agent, f"⏸ Needs human approval: {decision.reason}")
+        return CallOutcome(
+            call_item,
+            decision,
+            {
+                "type": "function_call_output",
+                "call_id": call_item.get("call_id"),
+                "output": (
+                    f"NEEDS HUMAN APPROVAL: {decision.reason}. "
+                    "This action was not executed."
+                ),
+            },
+        )
     if not decision.allowed:
         signature, report = warden.evolve(decision, call_item)
         learned = warden.learn(signature)

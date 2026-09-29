@@ -38,6 +38,7 @@ CASES = [
         2,
         "Agent Warden blocked Bash (credential_access): Touches keys or credentials "
         "[rule cred-keys, from built-in]",
+        "",
         False,
     ),
     (
@@ -46,6 +47,7 @@ CASES = [
         2,
         "Agent Warden blocked Read (credential_access): Touches keys or credentials "
         "[rule cred-keys, from built-in]",
+        "",
         False,
     ),
     (
@@ -53,6 +55,24 @@ CASES = [
         {"tool_name": "Bash", "tool_input": {"command": "git status"}},
         0,
         "",
+        "",
+        False,
+    ),
+    (
+        "Bash asks before PR merge",
+        {"tool_name": "Bash", "tool_input": {"command": "gh pr merge 42 --squash"}},
+        0,
+        "",
+        json.dumps({
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "ask",
+                "permissionDecisionReason": (
+                    "Merging a pull request needs human confirmation unless a "
+                    "non-production base is explicit."
+                ),
+            }
+        }) + "\n",
         False,
     ),
     (
@@ -63,17 +83,18 @@ CASES = [
         },
         0,
         "",
+        "",
         False,
     ),
-    ("Malformed input fails open", None, 0, "Agent Warden warning:", False),
-    ("Malformed input fails closed", None, 2, "Agent Warden warning:", True),
+    ("Malformed input fails open", None, 0, "Agent Warden warning:", "", False),
+    ("Malformed input fails closed", None, 2, "Agent Warden warning:", "", True),
 ]
 
 
 def main() -> int:
     failures = []
     with tempfile.TemporaryDirectory(prefix="agent-warden-hook-") as state_dir:
-        for name, payload, expected_code, expected_stderr, fail_closed in CASES:
+        for name, payload, expected_code, expected_stderr, expected_stdout, fail_closed in CASES:
             raw_input = json.dumps(payload) if payload is not None else "{not valid json\n"
             result = invoke(raw_input, state_dir, fail_closed)
             stderr = result.stderr.strip()
@@ -81,7 +102,7 @@ def main() -> int:
             stderr_ok = stderr == expected_stderr if not expected_stderr.startswith(
                 "Agent Warden warning:"
             ) else stderr.startswith(expected_stderr)
-            stdout_ok = result.stdout == ""
+            stdout_ok = result.stdout == expected_stdout
 
             if code_ok and stderr_ok and stdout_ok:
                 print(f"PASS {name}: exit {result.returncode}")
@@ -89,7 +110,10 @@ def main() -> int:
 
             failures.append(name)
             print(f"FAIL {name}: exit {result.returncode}, stderr={stderr!r}, stdout={result.stdout!r}")
-            print(f"  expected: exit {expected_code}, stderr={expected_stderr!r}, stdout='' ")
+            print(
+                f"  expected: exit {expected_code}, stderr={expected_stderr!r}, "
+                f"stdout={expected_stdout!r}"
+            )
 
     print(f"{len(CASES) - len(failures)}/{len(CASES)} hook cases passed")
     return 1 if failures else 0

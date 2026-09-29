@@ -51,6 +51,16 @@ def main() -> int:
             "arguments": json.dumps(tool_input),
         }
         decision = Warden(node_name).check(item)
+        if decision.action == "ask":
+            print(json.dumps({
+                "hookSpecificOutput": {
+                    "hookEventName": "PreToolUse",
+                    "permissionDecision": "ask",
+                    "permissionDecisionReason": decision.reason,
+                }
+            }))
+            return 0
+
         if decision.allowed:
             return 0
 
