@@ -133,6 +133,42 @@ class Warden:
             source=self.node_name,
         )
 
+    def evolve(self, decision: Decision, item: dict[str, Any]) -> tuple[Rule, list[dict[str, Any]]]:
+        """Turn one block into the broadest rule that still allows every known-good call.
+
+        Candidates go from broad to narrow. Each is replayed against KNOWN_GOOD;
+        the first with zero false alarms is adopted. The exact fragment is the
+        fallback, so evolving never makes the warden weaker.
+        """
+        from agent.known_good import KNOWN_GOOD
+
+        narrow = self.signature_for(decision, item)
+        fragment = re.sub(r"\\(.)", r"\1", narrow.pattern)
+        candidates: list[tuple[str, str]] = []
+        if "/" in fragment:
+            parts = [p for p in fragment.split("/") if p]
+            stem = re.split(r"[.\-_]", parts[-1])[0]
+            for depth in range(1, len(parts)):  # directory prefixes, broadest first
+                prefix = "/" + "/".join(parts[:depth]) + "/"
+                candidates.append((f"directory {prefix}", re.escape(prefix)))
+            for seg in parts[:-1]:  # a sensitive-looking folder name anywhere
+                candidates.append((f"any folder named {seg}", r"/" + re.escape(seg) + r"/"))
+            if stem:
+                candidates.append((f"files named {stem}*", r"/" + re.escape(stem) + r"[^\"/]*"))
+        candidates.append(("exact path", narrow.pattern))
+
+        report = []
+        for label, pattern in candidates:
+            false_alarms = [
+                g["arguments"] for g in KNOWN_GOOD if re.search(pattern, g["arguments"], re.I)
+            ]
+            report.append({"candidate": label, "pattern": pattern, "false_alarms": len(false_alarms)})
+            if not false_alarms:
+                narrow.pattern = pattern
+                narrow.reason = f"{narrow.reason} (generalized to {label})"
+                return narrow, report
+        return narrow, report
+
     def learn(self, rule: Rule) -> bool:
         """Add a signature from another node. Returns False if it was already known."""
         if any(r.pattern == rule.pattern for r in self.shared):

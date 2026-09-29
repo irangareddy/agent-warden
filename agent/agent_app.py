@@ -58,13 +58,17 @@ def main(agent: AgentSession, context: Context) -> None:
         for item in tool_calls:
             decision = warden.check(item)
             if not decision.allowed:
-                signature = warden.signature_for(decision, item)
+                signature, report = warden.evolve(decision, item)
                 warden.learn(signature)
                 _say(
                     agent,
                     f"🛡️ Warden BLOCKED `{decision.tool}` ({decision.family}: "
                     f"{decision.reason}) in {decision.latency_ms} ms",
                 )
+                tried = ", ".join(
+                    f"{r['candidate']} ({r['false_alarms']} false alarms)" for r in report
+                )
+                _say(agent, f"🧬 Evolved rule: {signature.reason}. Tested: {tried}")
                 input_items.append(blocked_output(item, decision, signature))
                 continue
             input_items.append(
