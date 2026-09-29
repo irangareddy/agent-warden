@@ -158,6 +158,4 @@ One shared hook now adapts Wagent to several coding-agent harnesses; see
 - The Claude Code hook uses local rules and packs; syncing rules from a fleet to it isn't built.
 - Next: a held-out evaluation set, signed rules, approval cards on Flower.
 
-Related work at earlier Flower hackathons: [Pollen Mesh](https://github.com/tanveerxz/pollen-mesh) shares hashed threat signatures between organizations without sharing data. Wagent applies the same idea to what agents themselves are allowed to do.
-
 Based on the Flower Collaborative AgentApp template (Apache 2.0).
