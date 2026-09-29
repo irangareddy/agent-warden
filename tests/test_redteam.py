@@ -197,11 +197,15 @@ def main() -> None:
     print("PASS second node learned the signature and blocked a non-credential variant")
 
     os.environ.pop("WARDEN_ALLOW_RED_TEAM")
-    calls = []
+    # Without the operator opt-in a node never simulates an attack. The coordinator
+    # only routes, so its gate is the tag alone (it runs where no variable can be set).
+    node_calls = []
     assert not is_scripted_attack(prompt)
-    assert not run_coordinator_scripted(prompt, [], calls.append, notices.append)
-    assert calls == []
-    print("PASS operator gate disabled: no scripted calls ran")
+    assert not run_node_scripted(prompt, "Gate Node", [], node_calls.append, notices.append)
+    assert node_calls == []
+    assert not run_coordinator_scripted("no tag here", [], node_calls.append, notices.append)
+    assert node_calls == []
+    print("PASS operator gate disabled: node ran no scripted calls; untagged coordinator did nothing")
 
 
 if __name__ == "__main__":
