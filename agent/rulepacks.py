@@ -16,6 +16,7 @@ DEFAULT_PACKS = ("secrets", "git-safety", "publishing")
 PACKS_ENV = "WARDEN_RULEPACKS"
 PACKS_DIR_ENV = "WARDEN_RULEPACKS_DIR"
 _RULE_FIELDS = {"id", "family", "tool", "pattern", "reason"}
+_OPTIONAL_RULE_FIELDS = {"action"}
 
 
 class RulePackError(ValueError):
@@ -55,10 +56,19 @@ def load_packs(names: Iterable[str] | None = None) -> tuple[list["Rule"], list[d
 
         for index, raw_rule in enumerate(raw_rules):
             where = f"rule pack {name!r} rules.json entry {index}"
-            if not isinstance(raw_rule, dict) or set(raw_rule) != _RULE_FIELDS:
-                raise RulePackError(f"{where} must contain exactly {sorted(_RULE_FIELDS)}")
-            if not all(isinstance(raw_rule[field], str) for field in _RULE_FIELDS):
+            if (
+                not isinstance(raw_rule, dict)
+                or not _RULE_FIELDS.issubset(raw_rule)
+                or not set(raw_rule).issubset(_RULE_FIELDS | _OPTIONAL_RULE_FIELDS)
+            ):
+                raise RulePackError(
+                    f"{where} must contain required fields {sorted(_RULE_FIELDS)} "
+                    f"and optional fields {sorted(_OPTIONAL_RULE_FIELDS)}"
+                )
+            if not all(isinstance(value, str) for value in raw_rule.values()):
                 raise RulePackError(f"{where} fields must all be strings")
+            if raw_rule.get("action", "block") not in {"block", "ask"}:
+                raise RulePackError(f"{where} action must be 'block' or 'ask'")
             for field in ("tool", "pattern"):
                 try:
                     re.compile(raw_rule[field], re.I | re.S)

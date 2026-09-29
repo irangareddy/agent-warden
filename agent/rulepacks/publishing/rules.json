@@ -54,5 +54,37 @@
     "tool": "^(?:Bash|exec|shell)$",
     "pattern": "\\bprisma\\s+(?:migrate\\s+deploy|db\\s+push)\\b[^\\r\\n]{0,400}?(?:\\bprod(?:uction)?\\b|PRODUCTION_DATABASE_URL|DATABASE_URL=[^\\s\\\"']{0,200}?prod)|(?:\\bprod(?:uction)?\\b|PRODUCTION_DATABASE_URL|DATABASE_URL=[^\\s\\\"']{0,200}?prod)[^\\r\\n]{0,400}?\\bprisma\\s+(?:migrate\\s+deploy|db\\s+push)\\b",
     "reason": "Blocks Prisma schema changes against a production database."
+  },
+  {
+    "id": "beet-approval-pr-merge",
+    "family": "production-release",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\bgh\\s+pr\\s+merge\\b(?!(?:\\\\.|[^\\\"\\\\\\r\\n])*--base(?:=|\\s+)(?:\\\\\\\"|[\\\"'])?(?!(?:main|master|production|release(?:[/_-][\\w.-]+)?)(?=(?:\\\\\\\"|[\\s\\\"'])))[A-Za-z0-9._/-]+(?=(?:\\\\\\\"|[\\s\\\"'])))",
+    "reason": "Merging a pull request needs human confirmation unless a non-production base is explicit.",
+    "action": "ask"
+  },
+  {
+    "id": "beet-approval-gh-release",
+    "family": "production-release",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\bgh\\s+release\\s+create\\b",
+    "reason": "Creating a GitHub release needs human confirmation.",
+    "action": "ask"
+  },
+  {
+    "id": "beet-approval-npm-publish",
+    "family": "publishing",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\bnpm\\s+publish\\b",
+    "reason": "Publishing a package to npm needs human confirmation.",
+    "action": "ask"
+  },
+  {
+    "id": "beet-approval-app-store-upload",
+    "family": "publishing",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "(?:\\bxcrun\\s+iTMSTransporter\\b[^\\r\\n]{0,1000}(?<!\\S)-m\\s+upload\\b|\\basc\\s+builds?\\s+upload\\b|\\b(?:app[ -]?store|testflight)\\b(?:\\\\.|[^\\\"\\\\\\r\\n])*\\bupload\\b)",
+    "reason": "Uploading a build to TestFlight or the App Store needs human confirmation.",
+    "action": "ask"
   }
 ]

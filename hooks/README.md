@@ -1,8 +1,14 @@
 # Claude Code hook
 
 `claude_code_pretooluse.py` adapts Claude Code `PreToolUse` events to Agent
-Warden checks. A blocked call exits with status 2 and puts the reason on
-standard error, so Claude Code does not run the requested tool.
+Warden checks. It has three outcomes:
+
+- `allow`: exit 0 without output, so Claude Code runs the requested tool.
+- `block`: exit 2 with the reason on standard error, so Claude Code does not run it.
+- `ask`: exit 0 with a `hookSpecificOutput` JSON response requesting human approval.
+
+The `ask` JSON format should be checked against the current Claude Code hooks
+documentation when installing or upgrading the hook.
 
 ## Install
 
@@ -23,12 +29,12 @@ By default, decisions and learned signatures are stored in
 different shared state directory. Set `WARDEN_NODE_NAME` to give this client a
 stable fleet name; otherwise it uses `claude-code@<hostname>`.
 
-## Shared rules
+## Rules
 
-The Flower fleet writes accepted shared signatures to `signatures.json` in its
-shared state directory. Point this hook's `WARDEN_STATE_DIR` at that same
-directory to make those rules apply to Claude Code tool calls. The hook loads
-the file through `Warden`, alongside the built-in rules.
+The hook uses local built-in rules, enabled local rule packs, and local learned
+signatures loaded through `Warden`. Set `WARDEN_RULEPACKS` to a comma-separated
+list such as `secrets,git-safety,publishing` to choose the local packs. It does
+not yet synchronize rules from a Flower fleet.
 
 ## Failure behavior
 
