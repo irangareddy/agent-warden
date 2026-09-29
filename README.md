@@ -6,7 +6,7 @@ It's 2 a.m. and your agents are still working. One is fixing a test, one is prep
 
 Wagent checks every tool call before it runs. It stops the risky ones, asks you about the ones that depend on context, and turns each catch into a rule the rest of your fleet can use, so the next agent that tries the same thing is stopped too.
 
-Built at the Flower Collaborative Agent Hackathon, Stanford, September 29, 2026.
+Built at the **Flower Collaborative Agent Hackathon, Stanford, September 29, 2026.**
 
 ## What Wagent does
 
