@@ -1,5 +1,6 @@
 """Conversation and response helpers for the AgentApp."""
 
+import os
 from typing import Any
 
 from flwr.agentapp import AgentSession
