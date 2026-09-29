@@ -18,17 +18,6 @@ Built at the Flower Collaborative Agent Hackathon, Stanford, September 29, 2026.
 
 **Asks you when it can't know.** `gh pr merge 644` doesn't say whether it's going to production. For actions like that, Wagent asks you instead of guessing. You can review every rule the fleet learns and keep or remove it.
 
-## See it in 30 seconds
-
-No network, no account:
-
-```bash
-git clone https://github.com/irangareddy/wagent && cd wagent
-uv sync
-bash scripts/demo.sh
-```
-
-The demo runs 12 suites and prints each step: blocking, widening a rule, rejecting poisoned rules, sharing between nodes, rule packs, a scripted attack across a fleet, asking a human, the harness hooks, the setup CLI, and a node blocking only because it learned another node's rule.
 
 ## The numbers, and how to check them
 
