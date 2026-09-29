@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "wagent"
 version = "0.2.0"
-description = "Wagent: coding agents that stop risky tool calls and teach each other tested rules, without sharing their code"
+description = "Wagent: a warden for coding-agent fleets. Agents share what they block, never their code."
 license = { file = "LICENSE" }
 requires-python = ">=3.11,<4.0"
 dependencies = ["flwr>=1.38.0,<2.0", "openai>=2.16.0,<3.0.0"]
