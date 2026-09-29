@@ -14,7 +14,7 @@ dependencies = ["flwr>=1.38.0,<2.0", "openai>=2.16.0,<3.0.0"]
 packages = ["agent"]
 
 [tool.flwr.app]
-publisher = "flwrlabs"
+publisher = "irangareddy"
 display-name = "Agent Warden"
 color = "emerald"
 fab-format-version = 1
