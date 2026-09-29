@@ -74,6 +74,23 @@ ul{margin:0;padding-left:20px;display:grid;gap:10px;color:var(--muted);max-width
 .packs{display:grid;gap:12px;margin-top:8px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chips .pill{font-size:14px;padding:6px 14px;background:var(--soft)}
+/* Motion: purposeful, fast, ease-out; only transform and opacity. */
+:root{--ease:cubic-bezier(.23,1,.32,1)}
+.reveal{opacity:0;transform:translateY(12px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+button{transition:transform .15s var(--ease),background-color .15s,opacity .15s}
+button:active:not(:disabled){transform:scale(.97)}
+.logo{transition:transform .2s var(--ease),background-color .2s}
+@media (hover:hover){.logo:hover{transform:translateY(-2px);background:#f0f0f2}}
+nav a{transition:border-color .15s}
+#log span{display:block;animation:line .25s var(--ease) both}
+@keyframes line{from{opacity:0;transform:translateY(4px)}}
+.bar{transform-box:fill-box;transform-origin:left center;transform:scaleX(0);transition:transform .7s var(--ease)}
+.drawn .bar{transform:scaleX(1)}
+.flash{animation:flash .6s var(--ease)}
+@keyframes flash{0%{transform:scale(1)}40%{transform:scale(1.035)}100%{transform:scale(1)}}
+#fleet rect,#fleet text,#fleet line{transition:stroke .25s,fill .25s}
+@media (prefers-reduced-motion: reduce){.reveal{opacity:1;transform:none}.bar{transform:none}#log span,.flash{animation:none}}
 </style>
 </head>
 <body>
@@ -86,7 +103,7 @@ ul{margin:0;padding-left:20px;display:grid;gap:10px;color:var(--muted);max-width
   <nav><a href="#problem">Problem</a><a href="#live">Live</a><a href="#how">How it works</a><a href="#results">Results</a><a href="#runs">Runs</a><a href="https://github.com/irangareddy/wagent" target="_blank" rel="noopener">GitHub</a><a href="https://flower.ai/apps/irangareddy/wagent" target="_blank" rel="noopener">Flower Hub</a></nav>
 </header>
 
-<section id="problem">
+<section id="problem" class="reveal">
   <span class="kicker">The problem</span>
   <h2>Agents already work with real keys.</h2>
   <p class="cap">FelonyBench has tracked 13 incidents since July where frontier-lab agents affected third parties. Several are actions any coding agent could take with the credentials on your laptop.</p>
@@ -118,7 +135,7 @@ ul{margin:0;padding-left:20px;display:grid;gap:10px;color:var(--muted);max-width
   <p class="cap">The attack runs only on machines whose operator turned it on, so a prompt alone can't trigger it. QA runs Kimi-K2.7-Code and Release runs MiniMax-M3 on Nebius Token Factory. Backend and iOS run GPT.</p>
 </section>
 
-<section id="how">
+<section id="how" class="reveal">
   <span class="kicker">How it works</span>
   <h2>Four steps, all in code.</h2>
   <div class="steps">
@@ -133,9 +150,9 @@ ul{margin:0;padding-left:20px;display:grid;gap:10px;color:var(--muted);max-width
   <span class="kicker">Results</span>
   <h2>Measured on real agent work.</h2>
   <div class="grid2">
-    <div class="box stat"><span class="v">0.02%</span><span class="k">false alarms on 39,633 real commands from Nebius SWE-agent runs we never saw</span></div>
-    <div class="box stat"><span class="v">81% <span style="color:var(--muted);font-weight:500">vs</span> 41%</span><span class="k">attacks caught: Wagent default packs vs a plain denylist</span></div>
-    <div class="box stat"><span class="v">10% → 31%</span><span class="k">attacks every agent stops: alone vs sharing rules</span></div>
+    <div class="box stat reveal"><span class="v">0.02%</span><span class="k">false alarms on 39,633 real commands from Nebius SWE-agent runs we never saw</span></div>
+    <div class="box stat reveal"><span class="v">81% <span style="color:var(--muted);font-weight:500">vs</span> 41%</span><span class="k">attacks caught: Wagent default packs vs a plain denylist</span></div>
+    <div class="box stat reveal"><span class="v">10% → 31%</span><span class="k">attacks every agent stops: alone vs sharing rules</span></div>
   </div>
 
   <div class="box" style="display:grid;gap:10px">
@@ -172,7 +189,7 @@ ul{margin:0;padding-left:20px;display:grid;gap:10px;color:var(--muted);max-width
   <p class="cap">Attack cases and the denylist were written by us, and some rules were tuned on my agents' history. The 39,633 commands are data we never saw. A blind red team is next.</p>
 </section>
 
-<section id="runs">
+<section id="runs" class="reveal">
   <span class="kicker">Runs</span>
   <h2>Everything we ran today.</h2>
   <div class="tablewrap"><table>
@@ -242,7 +259,7 @@ function packet(from,to,ms=700){return new Promise(r=>{const p=el("circle",{r:7,
 function reset(){atk.setAttribute("opacity",0);cst.textContent="idle";cst.style.fill="var(--muted)";cbox.setAttribute("stroke","#0d0d0d");
   for(const n of Object.values(nodes)){n.box.setAttribute("stroke","#ececec");n.res.textContent="idle";n.res.style.fill="var(--muted)";n.src.textContent=n.own?"has customer-data rule":"no customer-data rule";n.link.setAttribute("stroke","#ececec");}}
 function setNode(name,result,source){const n=nodes[name];if(!n)return;const blocked=result==="BLOCKED";
-  n.box.setAttribute("stroke",blocked?"var(--block)":"var(--allow)");n.res.textContent=result;n.res.style.fill=blocked?"var(--block)":"var(--allow)";
+  n.box.setAttribute("stroke",blocked?"var(--block)":"var(--allow)");n.box.classList.remove("flash");void n.box.getBoundingClientRect();n.box.style.transformOrigin=n.x+"px "+n.y+"px";n.box.classList.add("flash");n.res.textContent=result;n.res.style.fill=blocked?"var(--block)":"var(--allow)";
   n.src.textContent=source==="pack:customer-data"?"its own customer-data rule":source.startsWith("Beet ")?"with "+source.replace("Beet ","").replace(" Agent","")+"'s rule":source;}
 
 /* ---------- Stream handling ---------- */
@@ -282,7 +299,7 @@ if(location.protocol==="file:"){bLive.disabled=bRep.disabled=true;status.textCon
 
 /* ---------- Charts ---------- */
 const st=document.getElementById("strip"), W=860, X=20;
-el("rect",{x:X,y:26,width:W,height:30,rx:4,fill:"var(--allow)",opacity:.85},st);
+el("rect",{x:X,y:26,width:W,height:30,rx:4,fill:"var(--allow)",opacity:.85,class:"bar"},st);
 [0.13,0.31,0.33].forEach(f=>el("rect",{x:X+f*W,y:18,width:4,height:46,fill:"var(--block)"},st));
 el("text",{x:X,y:84,"font-size":13,style:"fill:var(--muted)"},st,"0");
 el("text",{x:X+W,y:84,"font-size":13,"text-anchor":"end",style:"fill:var(--muted)"},st,"39,633 commands");
@@ -293,7 +310,7 @@ function bars(id,groups,max,unit){const s=document.getElementById(id),L=150,BW=2
   groups.forEach((g,gi)=>{const y=18+gi*104;
     el("text",{x:0,y:y+22,"font-size":13,"font-weight":600},s,g[0]);
     [[g[1],GREY],[g[2],"var(--flow)"]].forEach(([v,c],k)=>{const yy=y+k*36,w=Math.max(3,BW*v/max);
-      el("rect",{x:L,y:yy,width:w,height:26,rx:3,fill:c},s);
+      el("rect",{x:L,y:yy,width:w,height:26,rx:3,fill:c,class:"bar",style:"transition-delay:"+(gi*120+k*60)+"ms"},s);
       el("text",{x:L+w+8,y:yy+18,"font-size":13,"font-weight":600,style:"font-family:var(--mono)"},s,g[3]?g[3][k]:v+unit);});});}
 bars("base",[["Attacks caught",41,81],["Routine flagged",38,2]],100,"%");
 bars("share",[["Every agent stops",10,31],["Agents protected",28,45,["1.1 of 4","1.8 of 4"]]],100,"%");
@@ -311,7 +328,13 @@ const xs=[0,6,12,18,24];
 const h=document.getElementById("hist"),HL=130,HW=320,cols=["var(--block)","var(--ask)","var(--allow)"];
 [["Routine",[0,3,37],40],["Rephrased attacks",[12,3,0],15],["Risky",[6,6,3],15]].forEach((r,i)=>{const y=16+i*60;let x=HL;
   el("text",{x:0,y:y+21,"font-size":13,"font-weight":600},h,r[0]);
-  r[1].forEach((v,k)=>{if(!v)return;const w=HW*v/r[2];el("rect",{x,y,width:w-2,height:32,rx:3,fill:cols[k]},h);if(w>24)el("text",{x:x+w/2,y:y+21,"text-anchor":"middle","font-size":12,"font-weight":600,style:"fill:#fff"},h,v);x+=w;});});
+  r[1].forEach((v,k)=>{if(!v)return;const w=HW*v/r[2];el("rect",{x,y,width:w-2,height:32,rx:3,fill:cols[k],class:"bar",style:"transition-delay:"+(i*120)+"ms"},h);if(w>24)el("text",{x:x+w/2,y:y+21,"text-anchor":"middle","font-size":12,"font-weight":600,style:"fill:#fff"},h,v);x+=w;});});
+
+/* ---------- Reveal on scroll, bars grow, numbers count ---------- */
+const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const io=("IntersectionObserver" in window)?new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add("in","drawn");io.unobserve(e.target);}),{threshold:.15}):null;
+document.querySelectorAll(".reveal, svg#strip, svg#base, svg#share, svg#hist").forEach(t=>io?io.observe(t):t.classList.add("in","drawn"));
+setTimeout(()=>document.querySelectorAll(".reveal, svg#strip, svg#base, svg#share, svg#hist").forEach(t=>t.classList.add("in","drawn")),2500);
 })();
 </script>
 </body>
