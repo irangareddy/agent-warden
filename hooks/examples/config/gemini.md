@@ -11,7 +11,7 @@
         "hooks": [
           {
             "type": "command",
-            "name": "Agent Warden",
+            "name": "Wagent",
             "command": "python3 /ABSOLUTE/PATH/TO/agent-warden/hooks/warden_hook.py --harness gemini"
           }
         ]

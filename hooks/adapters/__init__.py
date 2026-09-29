@@ -1,4 +1,4 @@
-"""Per-harness adapters for the shared Agent Warden hook."""
+"""Per-harness adapters for the shared Wagent hook."""
 
 from .claude import ADAPTER as CLAUDE
 from .codex import ADAPTER as CODEX

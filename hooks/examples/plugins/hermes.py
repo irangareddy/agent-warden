@@ -23,10 +23,10 @@ def warden_pre_tool_call(tool_name: str, args: dict, **_kwargs):
         check=False,
     )
     if child.returncode:
-        return {"action": "block", "message": child.stderr.strip() or "Agent Warden hook failed closed"}
+        return {"action": "block", "message": child.stderr.strip() or "Wagent hook failed closed"}
     result = json.loads(child.stdout)
     if result["action"] != "allow":
-        return {"action": "block", "message": result["reason"] or "Agent Warden requires approval"}
+        return {"action": "block", "message": result["reason"] or "Wagent requires approval"}
     return {}
 
 

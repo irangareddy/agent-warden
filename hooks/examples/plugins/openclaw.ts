@@ -12,11 +12,11 @@ export function before_tool_call(event: { toolName: string; params: Record<strin
     encoding: "utf8",
   });
   if (child.status !== 0) {
-    return { block: true, blockReason: child.stderr.trim() || "Agent Warden hook failed closed" };
+    return { block: true, blockReason: child.stderr.trim() || "Wagent hook failed closed" };
   }
   const result = JSON.parse(child.stdout);
   if (result.action !== "allow") {
-    return { block: true, blockReason: result.reason || "Agent Warden requires approval" };
+    return { block: true, blockReason: result.reason || "Wagent requires approval" };
   }
   return {};
 }

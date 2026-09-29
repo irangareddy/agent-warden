@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run Agent Warden as a pre-tool hook for supported coding-agent harnesses."""
+"""Run Wagent as a pre-tool hook for supported coding-agent harnesses."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ def _fail_closed() -> bool:
 def _warning(error: BaseException) -> str:
     detail = " ".join(str(error).split()) or error.__class__.__name__
     return (
-        f"Agent Warden warning: hook error ({detail}); failing "
+        f"Wagent warning: hook error ({detail}); failing "
         f"{'closed' if _fail_closed() else 'open'}"
     )
 

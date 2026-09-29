@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "agent-warden"
+name = "wagent"
 version = "0.2.0"
-description = "Collaborative agents whose tool calls pass through a warden that shares what it blocks"
+description = "The warden for your agents: every action is checked before it runs, and one agent's catch protects the whole fleet."
 license = { file = "LICENSE" }
 requires-python = ">=3.11,<4.0"
 dependencies = ["flwr>=1.38.0,<2.0", "openai>=2.16.0,<3.0.0"]
@@ -15,7 +15,7 @@ packages = ["agent"]
 
 [tool.flwr.app]
 publisher = "irangareddy"
-display-name = "Agent Warden"
+display-name = "Wagent"
 color = "emerald"
 fab-format-version = 1
 flwr-version-target = "1.38.0"

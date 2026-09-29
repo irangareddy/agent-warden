@@ -13,13 +13,13 @@ def json_line(value: dict[str, Any]) -> str:
 
 
 def reason(call: CanonicalCall, decision: Any, *, detailed: bool) -> str:
-    base = decision.reason or "Denied by Agent Warden"
+    base = decision.reason or "Denied by Wagent"
     if detailed:
         label = call.original_name
         if call.original_name != call.name:
             label = f"{call.original_name} as {call.name}"
         base = (
-            f"Agent Warden blocked {label} ({decision.family}): {base} "
+            f"Wagent blocked {label} ({decision.family}): {base} "
             f"[rule {decision.rule_id}, from {decision.source}]"
         )
     elif call.original_name != call.name:

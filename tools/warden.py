@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Set up and operate Agent Warden for a project."""
+"""Set up and operate Wagent for a project."""
 
 from __future__ import annotations
 
@@ -122,7 +122,7 @@ def _hook_spec(harness: str) -> dict[str, Any]:
     if harness == "gemini":
         gemini = {
             "matcher": ".*",
-            "hooks": [{"type": "command", "name": "Agent Warden", "command": command}],
+            "hooks": [{"type": "command", "name": "Wagent", "command": command}],
         }
         return {"hooks": {"BeforeTool": [gemini]}}
     if harness == "copilot":
@@ -227,7 +227,7 @@ def command_init(args: argparse.Namespace) -> int:
         _json_write(known_good, _known_good(project))
 
     spec = _hook_spec(harness)
-    print(f"Initialized Agent Warden in {warden_dir}")
+    print(f"Initialized Wagent in {warden_dir}")
     print("Hook configuration:")
     print(json.dumps(spec, indent=2))
     if args.write_hook:
@@ -438,7 +438,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    init = subparsers.add_parser("init", help="set up Agent Warden in a project")
+    init = subparsers.add_parser("init", help="set up Wagent in a project")
     init.add_argument("--project", default=".")
     init.add_argument("--harness", choices=HARNESSES)
     init.add_argument("--packs")

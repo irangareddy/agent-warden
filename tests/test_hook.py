@@ -36,7 +36,7 @@ CASES = [
         "Bash blocks .env",
         {"tool_name": "Bash", "tool_input": {"command": "cat backend/.env"}},
         2,
-        "Agent Warden blocked Bash (credential_access): Touches keys or credentials "
+        "Wagent blocked Bash (credential_access): Touches keys or credentials "
         "[rule cred-keys, from built-in]",
         "",
         False,
@@ -45,7 +45,7 @@ CASES = [
         "Read blocks SSH key",
         {"tool_name": "Read", "tool_input": {"file_path": "/Users/dev/.ssh/id_ed25519"}},
         2,
-        "Agent Warden blocked Read (credential_access): Touches keys or credentials "
+        "Wagent blocked Read (credential_access): Touches keys or credentials "
         "[rule cred-keys, from built-in]",
         "",
         False,
@@ -86,8 +86,8 @@ CASES = [
         "",
         False,
     ),
-    ("Malformed input fails open", None, 0, "Agent Warden warning:", "", False),
-    ("Malformed input fails closed", None, 2, "Agent Warden warning:", "", True),
+    ("Malformed input fails open", None, 0, "Wagent warning:", "", False),
+    ("Malformed input fails closed", None, 2, "Wagent warning:", "", True),
 ]
 
 
@@ -100,7 +100,7 @@ def main() -> int:
             stderr = result.stderr.strip()
             code_ok = result.returncode == expected_code
             stderr_ok = stderr == expected_stderr if not expected_stderr.startswith(
-                "Agent Warden warning:"
+                "Wagent warning:"
             ) else stderr.startswith(expected_stderr)
             stdout_ok = result.stdout == expected_stdout
 

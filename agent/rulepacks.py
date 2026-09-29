@@ -1,4 +1,4 @@
-"""Load portable Agent Warden rule packs from bundled and local directories."""
+"""Load portable Wagent rule packs from bundled and local directories."""
 
 from __future__ import annotations
 

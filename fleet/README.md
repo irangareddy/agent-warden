@@ -1,4 +1,4 @@
-# Agent Warden demo fleet
+# Wagent demo fleet
 
 This template runs four Flower SuperNodes: iOS, backend, QA, and release. Each
 container receives only its own private key and its own demo data directory.

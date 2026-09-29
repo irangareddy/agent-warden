@@ -1,4 +1,4 @@
-"""Agent Warden: a Collaborative AgentApp whose tool calls pass through a warden."""
+"""Wagent: a Collaborative AgentApp whose tool calls pass through a warden."""
 
 import json
 import os

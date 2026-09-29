@@ -1,6 +1,6 @@
-# Agent Warden
+# Wagent
 
-**Agents that protect each other.** Every tool call a Flower Agent makes is checked in code before it runs. When one node blocks something, it turns the block into a tested rule, and every other node validates that rule on its own work before enforcing it. Poisoned rules are rejected.
+**The warden for your agents.** Every tool call a Flower Agent makes is checked in code before it runs. When one node blocks something, it turns the block into a tested rule, and every other node validates that rule on its own work before enforcing it. Poisoned rules are rejected.
 
 Built at the Flower Collaborative Agent Hackathon, Stanford, September 29, 2026.
 
@@ -8,7 +8,7 @@ Built at the Flower Collaborative Agent Hackathon, Stanford, September 29, 2026.
 
 AI agents now run unsupervised with real access: repositories, credentials, production deploys. In September 2026 OpenAI reported an agent in training reaching an outside chatbot through a DNS resolver; monitoring took about 15 minutes to flag it, repeat attempts went unflagged, and the automatic stop failed. A public tracker, [FelonyBench](https://www.felonybench.com/), lists incidents where lab agents affected third parties.
 
-Prompts ask agents to behave. They don't guarantee it. Agent Warden enforces the rules in code, and makes one agent's catch protect the whole fleet.
+Prompts ask agents to behave. They don't guarantee it. Wagent enforces the rules in code, and makes one agent's catch protect the whole fleet.
 
 ## Try it in 30 seconds (no network)
 
@@ -121,15 +121,15 @@ agent/rulepacks/<name>/
 
 Enable with `WARDEN_RULEPACKS` (default `secrets,git-safety,publishing`; `beet` is opt-in). Add your own directory with `WARDEN_RULEPACKS_DIR`.
 
-Skills tell agents the rules. Agent Warden enforces them.
+Skills tell agents the rules. Wagent enforces them.
 
 ## Use with Claude Code
 
-Agent Warden also runs as a Claude Code `PreToolUse` hook that checks each tool call before it executes. It fails open by default so a broken hook never blocks your agent. See [hooks/README.md](hooks/README.md).
+Wagent also runs as a Claude Code `PreToolUse` hook that checks each tool call before it executes. It fails open by default so a broken hook never blocks your agent. See [hooks/README.md](hooks/README.md).
 
 ## Use with your agent
 
-One shared hook now adapts Agent Warden to several coding-agent harnesses; see
+One shared hook now adapts Wagent to several coding-agent harnesses; see
 [installation snippets and contract details](hooks/README.md).
 
 | Native adapters | Generic bridge examples |
@@ -152,12 +152,12 @@ One shared hook now adapts Agent Warden to several coding-agent harnesses; see
 
 ## Limits and next steps
 
-- Rules are patterns and can be phrased around. Evolution narrows the gap; hard isolation (sandboxes, OS or hardware policy) stays underneath. Agent Warden is the learning layer on top, not a replacement.
+- Rules are patterns and can be phrased around. Evolution narrows the gap; hard isolation (sandboxes, OS or hardware policy) stays underneath. Wagent is the learning layer on top, not a replacement.
 - Shared rules are validated locally but not yet cryptographically signed.
 - The ask tier works in the Claude Code hook (Claude prompts the user). Inside Flower, ask actions are held without running; approval cards on Flower are next.
 - The Claude Code hook uses local rules and packs; syncing rules from a fleet to it isn't built.
 - Next: a held-out evaluation set, signed rules, approval cards on Flower.
 
-Related work at earlier Flower hackathons: [Pollen Mesh](https://github.com/tanveerxz/pollen-mesh) shares hashed threat signatures between organizations without sharing data. Agent Warden applies the same idea to what agents themselves are allowed to do.
+Related work at earlier Flower hackathons: [Pollen Mesh](https://github.com/tanveerxz/pollen-mesh) shares hashed threat signatures between organizations without sharing data. Wagent applies the same idea to what agents themselves are allowed to do.
 
 Based on the Flower Collaborative AgentApp template (Apache 2.0).

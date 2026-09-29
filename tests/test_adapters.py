@@ -1,4 +1,4 @@
-"""Subprocess matrix for all Agent Warden harness adapters (Python 3.12)."""
+"""Subprocess matrix for all Wagent harness adapters (Python 3.12)."""
 
 from __future__ import annotations
 
@@ -179,7 +179,7 @@ def main() -> int:
                 lambda case=case, read_tool=read_tool, read_args=read_args: assert_denied(
                     case,
                     invoke(case.name, json.dumps(case.payload(read_tool, read_args)), state_dir),
-                    "Agent Warden",
+                    "Wagent",
                 ),
                 failures,
             )
@@ -247,7 +247,7 @@ def main() -> int:
                     json.dumps({"command": "cat .env", "cwd": str(ROOT)}),
                     state_dir,
                 ),
-                "Agent Warden",
+                "Wagent",
             ),
             failures,
         )
@@ -264,7 +264,7 @@ def _assert_malformed(
 ) -> None:
     assert result.returncode == expected_code, result
     assert result.stdout == "", result
-    assert result.stderr.startswith("Agent Warden warning:"), result
+    assert result.stderr.startswith("Wagent warning:"), result
     assert f"failing {disposition}" in result.stderr, result
     assert len(result.stderr.strip().splitlines()) == 1, result
 

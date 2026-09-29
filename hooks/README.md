@@ -1,4 +1,4 @@
-# Agent Warden hooks
+# Wagent hooks
 
 `warden_hook.py` is the shared policy entry point. It reads one hook event from
 standard input, normalizes the tool name and arguments, calls the existing
@@ -70,14 +70,14 @@ or isolate hook state. `WARDEN_NODE_NAME` overrides the generated
 Malformed input, import failures, state errors, and other internal failures
 emit one warning line on stderr and exit 0. Set
 `AGENT_WARDEN_FAIL_CLOSED=1` to deny instead (exit 2). This environment setting
-controls failures inside Agent Warden; harness-level timeout and crash behavior
+controls failures inside Wagent; harness-level timeout and crash behavior
 still follows the host's own contract.
 
 ## Security boundary
 
 A pre-tool hook is **not a complete security boundary**. It only sees the tool
 calls the harness exposes, and a disabled, bypassed, timed-out, or uncovered
-tool can escape it. Combine Agent Warden with native permissions, sandboxing,
+tool can escape it. Combine Wagent with native permissions, sandboxing,
 network limits, and scoped credentials.
 
 The OpenClaw, Hermes, and OpenCode files under

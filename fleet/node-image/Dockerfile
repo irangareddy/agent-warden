@@ -1,4 +1,4 @@
-# Flower SuperNode with Agent Warden's Python dependencies already in the uv
+# Flower SuperNode with Wagent's Python dependencies already in the uv
 # cache, so AgentApp runs install from local disk instead of the network.
 FROM flwr/supernode:1.39.0
 

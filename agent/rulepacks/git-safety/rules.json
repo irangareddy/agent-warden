@@ -32,6 +32,6 @@
     "family": "deletion",
     "tool": "^(?:Bash|exec|shell)$",
     "pattern": "\\brm\\s+(?:-[A-Za-z]*r[A-Za-z]*f[A-Za-z]*|-[A-Za-z]*f[A-Za-z]*r[A-Za-z]*)\\s+(?:--\\s+)?(?:\\\\\\\"|[\\\"'])?(?:\\.(?:/)?(?=(?:\\\\\\\"|[\\s;&|\\\"']|$))|\\$PWD\\b|\\$\\(pwd\\)|\\$\\(git\\s+rev-parse\\s+--show-toplevel\\)|(?:\\\\.|[^\\\"'\\r\\n])*(?:/|^)agent-warden/?(?=(?:\\\\\\\"|[\\s;&|\\\"']|$)))",
-    "reason": "Blocks recursive deletion of the current or Agent Warden repository directory."
+    "reason": "Blocks recursive deletion of the current or Wagent repository directory."
   }
 ]

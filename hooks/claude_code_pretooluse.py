@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Backward-compatible Claude Code entry point for Agent Warden."""
+"""Backward-compatible Claude Code entry point for Wagent."""
 
 try:
     from .warden_hook import main as shared_main

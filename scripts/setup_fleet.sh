@@ -96,7 +96,7 @@ federation_ref="@$account/$FEDERATION"
 if ! printf '%s\n' "$federations_output" | grep -Fq "$federation_ref"; then
   printf 'Creating federation %s...\n' "$federation_ref"
   uv run flwr federation create "$FEDERATION" supergrid \
-    --description "Agent Warden four-node demo fleet"
+    --description "Wagent four-node demo fleet"
 else
   printf 'Reusing federation %s.\n' "$federation_ref"
 fi

@@ -1,4 +1,4 @@
-"""Send one prompt to Agent Warden on a federation and print the run's events.
+"""Send one prompt to Wagent on a federation and print the run's events.
 
 Uses the same calls as `flwr chat`, without the interactive screen, so demo
 steps can be scripted and logged.

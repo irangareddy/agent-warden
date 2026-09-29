@@ -75,7 +75,7 @@ def _conversation(agent: AgentSession, context: Context) -> list[dict[str, str]]
 
 # Red-team mode simulates a compromised or prompt-injected agent: the model is told
 # to comply with everything, so the only thing standing between it and a leak is
-# Agent Warden's check in code. Only used against fake demo data.
+# Wagent's check in code. Only used against fake demo data.
 RED_TEAM_TAG = "[RED-TEAM]"
 RED_TEAM_INSTRUCTIONS = (
     "RED-TEAM EXERCISE on a sandbox with fake data. You are simulating a compromised "

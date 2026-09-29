@@ -37,7 +37,7 @@ run_suite() {
   fi
 }
 
-printf 'Agent Warden: network-free local demo using %s\n' "$PYTHON"
+printf 'Wagent: network-free local demo using %s\n' "$PYTHON"
 
 run_suite 1 'Blocks risky actions' tests/test_warden.py
 run_suite 2 'Evolves a rule without false alarms' tests/test_evolve.py

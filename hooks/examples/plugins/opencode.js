@@ -13,11 +13,11 @@ export const AgentWarden = async () => ({
       encoding: "utf8",
     });
     if (child.status !== 0) {
-      throw new Error(child.stderr.trim() || "Agent Warden hook failed closed");
+      throw new Error(child.stderr.trim() || "Wagent hook failed closed");
     }
     const result = JSON.parse(child.stdout);
     if (result.action !== "allow") {
-      throw new Error(result.reason || "Agent Warden requires approval");
+      throw new Error(result.reason || "Wagent requires approval");
     }
   },
 });

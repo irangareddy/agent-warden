@@ -1,4 +1,4 @@
-"""Load project-local Agent Warden configuration into environment defaults."""
+"""Load project-local Wagent configuration into environment defaults."""
 
 from __future__ import annotations
 

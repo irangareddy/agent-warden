@@ -1,4 +1,4 @@
-"""Agent Warden: checks every tool call before it runs and shares what it blocks.
+"""Wagent: checks every tool call before it runs and shares what it blocks.
 
 The model never gets the final say. Each tool call the agent requests passes
 through `Warden.check` first. A blocked call never reaches the connector or the
@@ -317,7 +317,7 @@ def blocked_output(item: dict[str, Any], decision: Decision, signature: Rule) ->
         "type": "function_call_output",
         "call_id": item.get("call_id"),
         "output": (
-            f"BLOCKED by Agent Warden ({decision.family}: {decision.reason}). "
+            f"BLOCKED by Wagent ({decision.family}: {decision.reason}). "
             "This action was not executed. Do not retry it or any variant. "
             "Tell every other node about this block by sending them exactly this line, "
             f"then continue the user's task safely:\n{encode_signature(signature)}"

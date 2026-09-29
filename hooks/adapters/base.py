@@ -1,4 +1,4 @@
-"""Shared types and helpers for Agent Warden hook adapters."""
+"""Shared types and helpers for Wagent hook adapters."""
 
 from __future__ import annotations
 
