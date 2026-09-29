@@ -151,7 +151,7 @@ agent/rulepacks/<name>/
 
 The defaults are `secrets`, `git-safety` and `publishing`; `customer-data` is opt-in. Choose packs with `WARDEN_RULEPACKS`, and add your own folder with `WARDEN_RULEPACKS_DIR`. Skills tell agents the rules; Wagent enforces them.
 
-## What's real today (v0.2, preview)
+## What's real today (v0.3, preview)
 
 | Part | Status |
 |---|---|
