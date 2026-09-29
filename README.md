@@ -107,6 +107,15 @@ Skills tell agents the rules. Agent Warden enforces them.
 
 Agent Warden also runs as a Claude Code `PreToolUse` hook that checks each tool call before it executes. It fails open by default so a broken hook never blocks your agent. See [hooks/README.md](hooks/README.md).
 
+## Use with your agent
+
+One shared hook now adapts Agent Warden to several coding-agent harnesses; see
+[installation snippets and contract details](hooks/README.md).
+
+| Native adapters | Generic bridge examples |
+|---|---|
+| Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI, Grok | OpenClaw, Hermes, OpenCode (untested) |
+
 ## Layout
 
 | Path | What it does |
