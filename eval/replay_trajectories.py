@@ -33,13 +33,13 @@ ROWS_API = (
 CODE_BLOCK = re.compile(r"```[^\n]*\n(.*?)```", re.S)
 
 
-def fetch_commands(trajectories: int, cache: str) -> list[dict]:
+def fetch_commands(trajectories: int, cache: str, start: int = 0) -> list[dict]:
     if os.path.exists(cache):
         with open(cache, encoding="utf-8") as f:
             return [json.loads(line) for line in f]
     rows = []
-    for offset in range(0, trajectories, 100):
-        url = ROWS_API.format(offset=offset, length=min(100, trajectories - offset))
+    for offset in range(start, start + trajectories, 100):
+        url = ROWS_API.format(offset=offset, length=min(100, start + trajectories - offset))
         with urllib.request.urlopen(url, timeout=120) as resp:
             rows.extend(r["row"] for r in json.load(resp)["rows"])
     commands = []
@@ -58,8 +58,9 @@ def fetch_commands(trajectories: int, cache: str) -> list[dict]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--trajectories", type=int, default=500)
+    ap.add_argument("--offset", type=int, default=0, help="first run to read (the dataset has 80,036)")
     ap.add_argument("--packs", default="secrets,git-safety,publishing")
-    ap.add_argument("--cache", default=os.path.join(tempfile.gettempdir(), "wagent-nebius-commands.jsonl"))
+    ap.add_argument("--cache", default=None)
     ap.add_argument("--sample", type=int, default=15)
     opt = ap.parse_args()
 
@@ -67,7 +68,9 @@ def main() -> None:
     from agent.warden import Warden
     from eval.baseline import wilson_interval
 
-    commands = fetch_commands(opt.trajectories, opt.cache)
+    opt.cache = opt.cache or os.path.join(
+        tempfile.gettempdir(), f"wagent-nebius-{opt.offset}-{opt.trajectories}.jsonl")
+    commands = fetch_commands(opt.trajectories, opt.cache, opt.offset)
     occurrences = collections.Counter(c["command"] for c in commands)
     w = Warden("replay")
     w._log = lambda d: d
@@ -86,7 +89,7 @@ def main() -> None:
 
     n_unique, n_total = len(occurrences), sum(occurrences.values())
     trajectories = len({c["run"] for c in commands})
-    print(f"nebius/SWE-agent-trajectories: {trajectories} runs, {n_total} commands, {n_unique} unique; packs={opt.packs}")
+    print(f"nebius/SWE-agent-trajectories runs {opt.offset}-{opt.offset + opt.trajectories - 1}: {trajectories} runs, {n_total} commands, {n_unique} unique; packs={opt.packs}")
     for action in ("block", "ask"):
         k = actions[action]
         lo, hi = wilson_interval(k, n_unique)
