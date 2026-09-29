@@ -35,7 +35,8 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
         elif url.path == "/run":
-            self.stream(parse_qs(url.query).get("kind", ["replay"])[0])
+            q = parse_qs(url.query)
+            self.stream(q.get("kind", ["replay"])[0], burst="burst" in q)
         else:
             self.send_error(404)
 
@@ -43,7 +44,7 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(("data: " + line.rstrip("\n").replace("\r", "") + "\n\n").encode("utf-8"))
         self.wfile.flush()
 
-    def stream(self, kind):
+    def stream(self, kind, burst=False):
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream")
         self.send_header("Cache-Control", "no-cache")
@@ -62,7 +63,8 @@ class Handler(BaseHTTPRequestHandler):
                 with open(os.path.join(HERE, "recorded-run.log"), encoding="utf-8") as f:
                     for line in f:
                         self.send_line(line)
-                        time.sleep(0.9 if line.startswith(("→", "←", "🛡")) else 0.25)
+                        if not burst:
+                            time.sleep(0.9 if line.startswith(("→", "←", "🛡")) else 0.25)
             self.send_line("[[done]]")
         except (BrokenPipeError, ConnectionResetError):
             pass

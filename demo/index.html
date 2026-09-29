@@ -437,16 +437,29 @@ function handle(line){
   if(/finished$/.test(line)){row("");row('<span class="ok">✓</span> '+esc(line)+' <span class="d">in '+document.getElementById("ttime").textContent+'</span>');return;}
   row(esc(cut(line,140)),"d");
 }
+/* Play incoming lines at a readable pace, even when SuperGrid sends them in one burst. */
+const queue=[]; let playing=false;
+function pace(line){
+  if(line==="[[done]]")return 0;
+  if(/^→ push_messages/.test(line))return 1100;
+  if(line.includes("Scripted probe on Beet Backend Agent: BLOCKED"))return 1200;
+  if(/accepted a rule from Beet Backend Agent/.test(line))return 1100;
+  if(/^Beet \w+ Agent \|/.test(line))return 550;
+  if(/^[→←]/.test(line)||/accepted a rule/.test(line))return 350;
+  return 150;
+}
+function enqueue(line){queue.push(line);if(!playing)play();}
+function play(){if(!queue.length){playing=false;return;}playing=true;const line=queue.shift();handle(line);setTimeout(play,matchMedia("(prefers-reduced-motion: reduce)").matches?0:pace(line));}
 function tick(){const s=Math.floor((performance.now()-t0)/1000);document.getElementById("ttime").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");}
 function start(kind){
-  if(es)return; reset(); logEl.textContent=""; pushes=0; cursor=null;
+  if(es||playing)return; queue.length=0; reset(); logEl.textContent=""; pushes=0; cursor=null;
   bLive.disabled=bRep.disabled=true;document.getElementById("spin").hidden=false;document.getElementById("term").classList.add("running");
   status.textContent=kind==="attack"?"Starting live run on SuperGrid…":"Replaying recorded run 13331100501952200106…";
   t0=performance.now();tick();timer=setInterval(tick,250);
-  es=new EventSource("/run?kind="+kind);
+  es=new EventSource("/run?kind="+kind+(/[?&]burst/.test(location.search)?"&burst=1":""));
   if(kind==="replay")row('<span class="c"># replaying recorded run 13331100501952200106 (29 Sep 2026)</span>');
   row('<span class="p">$</span> '+ATTACK_CMD);
-  es.onmessage=e=>handle(e.data);
+  es.onmessage=e=>enqueue(e.data);
   es.onerror=()=>{status.textContent="Connection lost. Is demo/server.py running? Try Replay recorded run.";finish();};
 }
 function finish(){if(es){es.close();es=null;}clearInterval(timer);if(cursor){cursor.remove();cursor=null;}
