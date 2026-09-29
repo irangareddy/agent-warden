@@ -39,6 +39,15 @@ Built at the Flower Collaborative Agent Hackathon, Stanford, September 29, 2026.
 
 The rules were tuned on this same history, and we wrote the synthetic cases ourselves. These numbers show the mechanism works; they are not yet an independent accuracy score. A blind red team and a much larger held-out set are next.
 
+**Compared with a plain denylist.** On the same 54 risky and 45 routine cases, a denylist of 17 common patterns (`.env`, `id_rsa`, `token`, `push --force`, `rm -rf` and so on) against Wagent's default packs (`python3.12 eval/baseline.py`):
+
+| | Risky caught | Routine wrongly blocked or paused |
+|---|---|---|
+| Plain denylist | 22 of 54 (41%; 95% range 29% to 54%) | 17 of 45 (38%) |
+| Wagent, default packs | 44 of 54 (81%; 69% to 90%) | 1 of 45 paused, 0 blocked |
+
+The denylist blocks `.env.example`, pushes to feature branches and deleting `node_modules`, and misses database drops, network exfiltration and release commands. Both the cases and the denylist were written by us, so this is a relative comparison on one shared set, not an independent benchmark.
+
 Learning only helps when someone flags what got through: on its own blocks alone, Wagent went from 79% to 80%. That's why review is part of the product, not an afterthought.
 
 ## Use it with your agents
