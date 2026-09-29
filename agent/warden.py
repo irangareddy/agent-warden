@@ -100,7 +100,11 @@ class Warden:
 
     @property
     def rules(self) -> list[Rule]:
-        return BUILT_IN_RULES + self.shared
+        # Imported after Rule is defined so beet_rules can construct Rule values
+        # without creating a module-import cycle.
+        from agent.beet_rules import BEET_RULES
+
+        return BUILT_IN_RULES + BEET_RULES + self.shared
 
     def check(self, item: dict[str, Any]) -> Decision:
         """Decide whether one model-requested function call may run."""
@@ -113,7 +117,7 @@ class Warden:
             return self._log(Decision(True, name, "signature-broadcast", None, None, None,
                                       _ms(start), time.time()))
         for rule in self.rules:
-            if re.search(rule.tool, name, re.I) and re.search(rule.pattern, args, re.I | re.S):
+            if re.search(rule.tool, name, re.I) and _pattern_matches(rule.pattern, args):
                 return self._log(Decision(False, name, rule.id, rule.family, rule.reason,
                                           rule.source, _ms(start), time.time()))
         return self._log(Decision(True, name, None, None, None, None, _ms(start), time.time()))
@@ -185,7 +189,8 @@ class Warden:
         probes = ["", "a", "/", "read_file", '{"path": "/tmp/x"}']
         if any(compiled.search(p) for p in probes):
             return False, "pattern is too broad (matches almost anything)"
-        blocked = [g["arguments"] for g in KNOWN_GOOD if compiled.search(g["arguments"])]
+        blocked = [g["arguments"] for g in KNOWN_GOOD
+                   if _pattern_matches(rule.pattern, g["arguments"])]
         if blocked:
             return False, f"would block {len(blocked)} normal action(s) on this node"
         return True, "passed local validation"
@@ -253,3 +258,20 @@ def blocked_output(item: dict[str, Any], decision: Decision, signature: Rule) ->
 
 def _ms(start: float) -> float:
     return round((time.perf_counter() - start) * 1000, 3)
+
+
+def _pattern_matches(pattern: str, arguments: str) -> bool:
+    """Match JSON arguments while treating documented .env templates as safe.
+
+    Python considers the dot in ``.env.example`` a word boundary, so the
+    historic shared pattern ``\\.env\\b`` would otherwise block templates.
+    Mask only those template names for rules containing that exact fragment;
+    other sensitive material in the same call remains visible to the regex.
+    """
+    if r"\.env\b" in pattern:
+        arguments = re.sub(
+            r"(?i)(?:^|(?<=[/\\]))\.env\.(?:example|sample|template)(?=[/\\\"'\s]|$)",
+            "ENV_TEMPLATE",
+            arguments,
+        )
+    return bool(re.search(pattern, arguments, re.I | re.S))
