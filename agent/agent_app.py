@@ -10,7 +10,9 @@ from openai import OpenAI
 
 from agent.redteam import (
     CallOutcome,
+    SCRIPTED_ATTACK_TAG,
     is_scripted_attack,
+    prompt_payload,
     run_coordinator_scripted,
     run_node_scripted,
 )
@@ -178,7 +180,14 @@ def main(agent: AgentSession, context: Context) -> None:
     print("Warden: available tools:", [t.get("name") for t in tools])
     print("Warden: active rules:", len(warden.rules), "shared:", len(warden.shared))
 
-    if is_scripted_attack(agent.prompt):
+    grid_tool_names = {tool.get("name") for tool in grid_tools}
+    is_node = "push_reply_message" in grid_tool_names and "get_nodes" not in grid_tool_names
+    is_coordinator = {"get_nodes", "push_messages", "pull_messages"}.issubset(grid_tool_names)
+    # The coordinator only routes a scripted attack, so the tag is enough there; it runs
+    # on hosted infrastructure where no operator variable can be set. A node only
+    # simulates the attack if its own operator opted in (is_scripted_attack checks that).
+    tagged = SCRIPTED_ATTACK_TAG in prompt_payload(agent.prompt)
+    if (is_node and is_scripted_attack(agent.prompt)) or (is_coordinator and tagged):
         guarded_call = lambda item: _guarded_call(
             agent,
             item,
@@ -188,8 +197,7 @@ def main(agent: AgentSession, context: Context) -> None:
             accepted_this_run,
             True,
         )
-        grid_tool_names = {tool.get("name") for tool in grid_tools}
-        if "push_reply_message" in grid_tool_names and "get_nodes" not in grid_tool_names:
+        if is_node:
             run_node_scripted(
                 agent.prompt,
                 warden.node_name,
@@ -197,7 +205,7 @@ def main(agent: AgentSession, context: Context) -> None:
                 guarded_call,
                 lambda text: _say(agent, text),
             )
-        elif {"get_nodes", "push_messages", "pull_messages"}.issubset(grid_tool_names):
+        else:
             run_coordinator_scripted(
                 agent.prompt,
                 accepted_this_run,
@@ -205,8 +213,6 @@ def main(agent: AgentSession, context: Context) -> None:
                 lambda text: _say(agent, text),
                 warden.shared,
             )
-        else:
-            _say(agent, "🛡️ Scripted attack stopped: this AgentApp has no supported Grid role")
         return
 
     client = OpenAI(
