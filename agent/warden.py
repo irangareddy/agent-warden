@@ -31,6 +31,8 @@ class Rule:
     reason: str
     source: str = "built-in"  # "built-in", "pack:<name>", or the node that shared it
     action: str = "block"  # "block" or "ask"
+    sig: str = ""
+    pubkey: str = ""
 
 
 BUILT_IN_RULES = [
@@ -165,18 +167,20 @@ class Warden:
 
     def signature_for(self, decision: Decision, item: dict[str, Any]) -> Rule:
         """Build a shareable rule from a blocked call so other nodes block its variants."""
+        from agent.signing import sign_rule
+
         args = str(item.get("arguments", ""))
         # Keep the most specific path-like or key-like fragment as the shared pattern.
         fragments = re.findall(r"[\w.\-]*(?:/[\w.\-]+)+|[\w\-]*(?:key|secret|token|ssh)[\w\-]*", args, re.I)
         fragment = max(fragments, key=len) if fragments else args[:60]
-        return Rule(
+        return sign_rule(Rule(
             id=f"shared-{decision.rule_id}-{int(decision.ts)}",
             family=decision.family or "unknown",
             tool=r".*",
             pattern=re.escape(fragment),
             reason=f"Shared by {self.node_name}: {decision.reason}",
             source=self.node_name,
-        )
+        ))
 
     def evolve(self, decision: Decision, item: dict[str, Any]) -> tuple[Rule, list[dict[str, Any]]]:
         """Turn one block into the broadest rule that still allows every known-good call.
@@ -212,6 +216,8 @@ class Warden:
             if not false_alarms:
                 narrow.pattern = pattern
                 narrow.reason = f"{narrow.reason} (generalized to {label})"
+                from agent.signing import sign_rule
+                sign_rule(narrow)
                 return narrow, report
         return narrow, report
 
@@ -280,6 +286,12 @@ class Warden:
             try:
                 rule = Rule(**json.loads(raw))
             except (json.JSONDecodeError, TypeError):
+                continue
+            from agent.signing import check_rule_trust
+            trusted, trust_why = check_rule_trust(rule)
+            if not trusted:
+                self._log_rule(rule, accepted=False, why=trust_why)
+                rejected.append((rule, trust_why))
                 continue
             ok, why = self.validate(rule)
             if rule.pattern in _load_rejected():
