@@ -162,6 +162,30 @@ One shared hook now adapts Wagent to several coding-agent harnesses; see
 | `tools/` | `ask.py` (prompts without the chat screen), `measure_audit.py` (replay a private audit, totals only) |
 | `tests/` | Scenario suites |
 
+## Status (v0.2, preview)
+
+**Ready to use**
+- The check engine and the default rule packs: `secrets`, `git-safety`, `publishing`
+- The Flower AgentApp: checks, rule sharing through the coordinator, and validation on each node (run live on a 4-node SuperGrid fleet)
+- The `warden.py` CLI: `init`, `status`, `test`, `review`
+
+**Preview: use with care**
+- Hooks for Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI and Grok. They are tested against each tool's documented hook format (41 cases) but have not been run inside every tool. They fail open by default; set `AGENT_WARDEN_FAIL_CLOSED=1` to fail closed.
+- Rule learning. It generalizes file paths well, commands less so. Review what it learns.
+- The `beet` pack is an example from one team's setup. Copy it as a starting point; don't enable it as-is.
+
+**Examples only**
+- OpenClaw, Hermes and OpenCode plugins (untested)
+- The scripted attack, for demo fleets with fake data (needs `WARDEN_ALLOW_RED_TEAM=1`)
+
+**Coming next**
+- Signed rules, so a node can prove who proposed a rule
+- Approval cards on Flower, so "ask" actions can be approved from the fleet
+- Syncing rules a fleet learns into each developer's local hook
+- Rule packs beyond coding agents, and a held-out evaluation on other teams' data
+
+Wagent is a layer on top of sandboxes and permissions, not a replacement for them.
+
 ## Limits and next steps
 
 - Rules are patterns and can be phrased around. Evolution narrows the gap; hard isolation (sandboxes, OS or hardware policy) stays underneath. Wagent is the learning layer on top, not a replacement.
