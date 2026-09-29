@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Wagent</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: wide calm column, lots of air; each section = headline, one sentence, one visual. */
 :root{
@@ -146,6 +147,33 @@ ul{gap:var(--s1)}
 .legend{gap:var(--s3)}
 #log{padding:var(--s3)}
 .term-bar{padding:12px var(--s2)}
+/* Type: Inter (optical sizes) + JetBrains Mono. One 7-step scale: 80 / 40 / 24 / 20 / 17 / 15 / 13. */
+:root{
+  --sans:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --t1:80px; --t2:40px; --t3:24px; --t4:20px; --t5:17px; --t6:15px; --t7:13px;
+}
+html{font-optical-sizing:auto}
+body{font:400 var(--t5)/1.6 var(--sans);letter-spacing:-.011em}
+h1{font:700 clamp(56px,8vw,var(--t1))/1 var(--sans);letter-spacing:-.035em}
+.display{font:600 clamp(28px,3.4vw,var(--t2))/1.15 var(--sans);letter-spacing:-.025em;max-width:22ch}
+.lede{font:400 clamp(19px,2vw,var(--t4))/1.5 var(--sans);letter-spacing:-.014em;max-width:44ch}
+h2{font:700 clamp(30px,3.6vw,var(--t2))/1.12 var(--sans);letter-spacing:-.028em;max-width:22ch}
+.kicker{font:500 var(--t6)/1.3 var(--sans);letter-spacing:-.006em;color:var(--muted)}
+nav{font:500 var(--t6) var(--sans)}
+section > p.cap,.step span,ul{font-size:var(--t5);line-height:1.6}
+.cap,.box .cap,.stat .k,td,#status,.legend,button,.chips .pill,.logo b{font-size:var(--t6)}
+.box > b,.step b{font:600 var(--t4)/1.3 var(--sans);letter-spacing:-.017em}
+.stat .v{font:700 clamp(40px,4.4vw,48px)/1 var(--sans);letter-spacing:-.03em}
+th,.logo span,.pill,.step i{font-size:var(--t7);letter-spacing:-.003em}
+.step i{font-family:var(--mono);font-style:normal}
+.logo b{font-weight:600}
+#log{font:400 var(--t7)/1.75 var(--mono);letter-spacing:0}
+.term-bar{font:400 12px var(--mono);letter-spacing:0}
+.mono{font-family:var(--mono);font-size:.9em;letter-spacing:0}
+svg text{font-family:var(--sans);letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:var(--t7);margin-top:4px;line-height:1.4}
+td .pill{margin-right:0}
 </style>
 </head>
 <body>
@@ -167,10 +195,10 @@ ul{gap:var(--s1)}
   <div class="tablewrap"><table>
     <thead><tr><th>Date</th><th>Lab</th><th>Incident (FelonyBench)</th><th>Wagent pack for this kind of action</th></tr></thead>
     <tbody>
-      <tr><td>9/11/2026</td><td>OpenAI</td><td>Malicious RubyGem package by an agent swarm</td><td><span class="pill b">publishing</span> blocks <span class="mono">gem push</span></td></tr>
-      <tr><td>8/4/2026</td><td>Anthropic</td><td>Unauthorized use of GitHub credentials; Dependabot supply-chain attack</td><td><span class="pill b">secrets</span> blocks reading or printing GitHub tokens</td></tr>
-      <tr><td>8/4/2026</td><td>OpenAI</td><td>Unauthorized use of GitHub credentials</td><td><span class="pill b">secrets</span></td></tr>
-      <tr><td>7/30/2026</td><td>Anthropic</td><td>Malicious PyPI package</td><td><span class="pill b">publishing</span> blocks <span class="mono">twine upload</span></td></tr>
+      <tr><td>9/11/2026</td><td>OpenAI</td><td>Malicious RubyGem package by an agent swarm</td><td><span class="pill b">publishing</span><div class="sub">Blocks <span class="mono">gem push</span></div></td></tr>
+      <tr><td>8/4/2026</td><td>Anthropic</td><td>Unauthorized use of GitHub credentials; Dependabot supply-chain attack</td><td><span class="pill b">secrets</span><div class="sub">Blocks reading or printing GitHub tokens</div></td></tr>
+      <tr><td>8/4/2026</td><td>OpenAI</td><td>Unauthorized use of GitHub credentials</td><td><span class="pill b">secrets</span><div class="sub">Blocks reading or printing GitHub tokens</div></td></tr>
+      <tr><td>7/30/2026</td><td>Anthropic</td><td>Malicious PyPI package</td><td><span class="pill b">publishing</span><div class="sub">Blocks <span class="mono">twine upload</span></div></td></tr>
     </tbody>
   </table></div>
   <p class="cap">It happened to me too. An audit of my own coding agents found one had turned off approval prompts, and others merged to production. Prompts ask agents to behave. They don't guarantee it.</p>
@@ -198,21 +226,23 @@ ul{gap:var(--s1)}
 <section id="how" class="reveal">
   <span class="kicker">How it works</span>
   <h2>Four steps, all in code.</h2>
+  <p class="cap">No model decides what runs. Wagent checks the call, learns from the block, and shares only the rule.</p>
   <div class="steps">
-    <div class="step"><b>Check</b><span>Every tool call is checked before it runs. The model never gets a vote.</span><i>0.03 ms median</i></div>
-    <div class="step"><b>Widen</b><span>A block becomes the broadest rule that still allows normal work.</span><i>no false alarms on normal work</i></div>
-    <div class="step"><b>Share</b><span>The rule travels through the Flower coordinator. Nothing else does.</span><i>rule only, rate-limited</i></div>
-    <div class="step"><b>Validate</b><span>Each agent tests the rule on its own work before using it.</span><i>bad rules rejected</i></div>
+    <div class="step"><b>Check</b><span>Every tool call is checked before it runs. The model never gets a vote.</span><i>Median check: 0.03 ms</i></div>
+    <div class="step"><b>Widen</b><span>A block becomes the broadest rule that still allows normal work.</span><i>No false alarms on normal work</i></div>
+    <div class="step"><b>Share</b><span>The rule travels through the Flower coordinator. Nothing else does.</span><i>Only the rule is shared</i></div>
+    <div class="step"><b>Validate</b><span>Each agent tests the rule on its own work before using it.</span><i>Bad rules are rejected</i></div>
   </div>
 </section>
 
 <section id="results">
   <span class="kicker">Results</span>
   <h2>Measured on real agent work.</h2>
+  <p class="cap">We tested on commands we never saw, against a plain denylist, and with sharing on and off.</p>
   <div class="grid2">
-    <div class="box stat reveal"><span class="v">0.02%</span><span class="k">false alarms on 39,633 real commands from Nebius SWE-agent runs we never saw</span></div>
-    <div class="box stat reveal"><span class="v">81% <span style="color:var(--muted);font-weight:500">vs</span> 41%</span><span class="k">attacks caught: Wagent default packs vs a plain denylist</span></div>
-    <div class="box stat reveal"><span class="v">10% → 31%</span><span class="k">attacks every agent stops: alone vs sharing rules</span></div>
+    <div class="box stat reveal"><span class="v">0.02%</span><span class="k">False alarms on 39,633 real commands from Nebius SWE-agent runs we never saw</span></div>
+    <div class="box stat reveal"><span class="v">81% <span style="color:var(--muted);font-weight:500">vs</span> 41%</span><span class="k">Attacks caught by Wagent vs a plain denylist</span></div>
+    <div class="box stat reveal"><span class="v">10% → 31%</span><span class="k">Attacks every agent stops, alone vs sharing rules</span></div>
   </div>
 
   <div class="box" style="display:grid;gap:10px">
@@ -252,15 +282,16 @@ ul{gap:var(--s1)}
 <section id="runs" class="reveal">
   <span class="kicker">Runs</span>
   <h2>Everything we ran today.</h2>
+  <p class="cap">Every live run on Flower SuperGrid, with its run ID, so you can check it.</p>
   <div class="tablewrap"><table>
     <thead><tr><th>Run</th><th>What</th><th>Result</th></tr></thead>
     <tbody>
-      <tr><td>13331100501952200106</td><td>Scripted attack, mixed-model fleet</td><td><span class="pill b">4 / 4 blocked</span> 3 with Backend's rule</td></tr>
-      <tr><td>8508852592345920671</td><td>Scripted attack · Kimi, MiniMax, GPT</td><td><span class="pill b">4 / 4 blocked</span> 3 with Backend's rule</td></tr>
-      <tr><td>3752845067342549556</td><td>Shared-rule-only proof</td><td><span class="pill b">4 / 4 blocked</span> others' own rules allow it</td></tr>
-      <tr><td>7400283169209213563</td><td>Collaboration via Nebius models</td><td><span class="pill a">replies</span> QA (Kimi), Release (MiniMax)</td></tr>
-      <tr><td>11356823142852277877</td><td>After rate limiting shipped</td><td><span class="pill b">4 / 4 blocked</span> nothing held</td></tr>
-      <tr><td>12350019864980463414</td><td>Flower Endeavor model</td><td><span class="pill q">provider error</span> supported, retry later</td></tr>
+      <tr><td class="mono">13331100501952200106</td><td>Scripted attack, mixed-model fleet</td><td><span class="pill b">4 / 4 blocked</span><div class="sub">3 with Backend's rule</div></td></tr>
+      <tr><td class="mono">8508852592345920671</td><td>Scripted attack · Kimi, MiniMax, GPT</td><td><span class="pill b">4 / 4 blocked</span><div class="sub">3 with Backend's rule</div></td></tr>
+      <tr><td class="mono">3752845067342549556</td><td>Shared-rule-only proof</td><td><span class="pill b">4 / 4 blocked</span><div class="sub">Others' own rules allow it</div></td></tr>
+      <tr><td class="mono">7400283169209213563</td><td>Collaboration via Nebius models</td><td><span class="pill a">replies</span><div class="sub">QA (Kimi), Release (MiniMax)</div></td></tr>
+      <tr><td class="mono">11356823142852277877</td><td>After rate limiting shipped</td><td><span class="pill b">4 / 4 blocked</span><div class="sub">Nothing held</div></td></tr>
+      <tr><td class="mono">12350019864980463414</td><td>Flower Endeavor model</td><td><span class="pill q">provider error</span><div class="sub">Supported, retry later</div></td></tr>
     </tbody>
   </table></div>
 </section>
@@ -396,9 +427,9 @@ function bars(id,groups,max,unit){const s=document.getElementById(id),L=150,BW=2
     el("text",{x:0,y:y+22,"font-size":13,"font-weight":600},s,g[0]);
     [[g[1],GREY],[g[2],"var(--flow)"]].forEach(([v,c],k)=>{const yy=y+k*36,w=Math.max(3,BW*v/max);
       el("rect",{x:L,y:yy,width:w,height:26,rx:3,fill:c,class:"bar",style:"transition-delay:"+(gi*120+k*60)+"ms"},s);
-      el("text",{x:L+w+8,y:yy+18,"font-size":13,"font-weight":600,style:"font-family:var(--mono)"},s,g[3]?g[3][k]:v+unit);});});}
+      el("text",{x:L+w+8,y:yy+18,"font-size":13,"font-weight":600,style:"font-variant-numeric:tabular-nums"},s,g[3]?g[3][k]:v+unit);});});}
 bars("base",[["Attacks caught",41,81],["Routine flagged",38,2]],100,"%");
-bars("share",[["Every agent stops",10,31],["Agents protected",28,45,["1.1 of 4","1.8 of 4"]]],100,"%");
+bars("share",[["Every agent stops",10,31],["Agents protected (of 4)",28,45,["1.1","1.8"]]],100,"%");
 
 const cv=document.getElementById("curve"),px=50,pw=390,py=14,ph=190,y0=70,y1=100,sx=v=>px+pw*v/24,sy=v=>py+ph*(1-(v-y0)/(y1-y0));
 [70,80,90,100].forEach(t=>{el("line",{x1:px,y1:sy(t),x2:px+pw,y2:sy(t),stroke:"#ececec"},cv);el("text",{x:px-8,y:sy(t)+4,"text-anchor":"end","font-size":11,style:"fill:var(--muted)"},cv,t+"%");});
