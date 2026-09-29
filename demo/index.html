@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Wagent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: wide calm column, lots of air; each section = headline, one sentence, one visual. */
 :root{
@@ -95,8 +97,6 @@ nav a{transition:border-color .15s}
 .net.in .draw{animation:draw 1.6s var(--ease) forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
 .display{font:600 clamp(34px,5vw,56px)/1.05 var(--sans);letter-spacing:-.035em;max-width:16ch;text-wrap:balance}
-em{font-family:"Instrument Serif", Georgia, "Times New Roman", serif;font-style:italic;font-weight:400;letter-spacing:-.01em}
-h2 em,.display em{color:var(--muted)}
 .spin{width:14px;height:14px;border-radius:50%;border:2px solid #e4e4e7;border-top-color:var(--ink);animation:spin .8s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (max-width:720px){.net{display:none}}
@@ -114,64 +114,48 @@ h2 em,.display em{color:var(--muted)}
 #log .bx{color:#ff6961;font-weight:600}#log b{color:#fff;font-weight:600}
 .cur{display:inline-block;width:8px;height:15px;background:#e5e5ea;vertical-align:-3px;animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
-/* Apple HIG pass: system type, centered calm layout, one accent (system blue). */
-:root{
-  --bg:#ffffff; --ink:#1d1d1f; --muted:#86868b; --line:#d2d2d7; --soft:#f5f5f7;
-  --block:#ff3b30; --allow:#34c759; --ask:#ff9f0a; --flow:#1d1d1f; --packet:#ff9f0a; --blue:#0071e3;
-  --sans:-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --mono:ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
-}
-body{font:17px/1.47 var(--sans);letter-spacing:-.022em;padding-block:88px 140px}
-main{gap:140px}
-.hero{text-align:center;justify-items:center;gap:20px;padding:0}
-.product{font:600 21px/1 var(--sans);letter-spacing:.01em;color:var(--ink)}
-h1{font:700 clamp(48px,7.4vw,80px)/1.05 var(--sans);letter-spacing:-.015em;max-width:14ch;text-wrap:balance}
-.lede{font:400 clamp(21px,2.4vw,28px)/1.25 var(--sans);letter-spacing:.004em;color:var(--muted);max-width:30ch;text-wrap:balance}
-nav{justify-content:center;gap:28px;font:400 14px var(--sans);letter-spacing:-.01em}
-nav a{color:var(--blue);border:0;padding:0}
-nav a:hover{text-decoration:underline}
-.kicker{font:600 17px var(--sans);color:var(--muted);letter-spacing:-.01em}
-section{justify-items:stretch}
-section > .kicker, section > h2, section > p.cap{text-align:center;justify-self:center}
-section > .kicker + h2{margin-top:-18px}
-h2{font:700 clamp(34px,4.6vw,56px)/1.07 var(--sans);letter-spacing:-.005em;max-width:18ch}
-section > p.cap{font-size:21px;line-height:1.38;letter-spacing:.011em;max-width:36ch;color:var(--muted)}
-.cap{font-size:15px}
-.box{border-radius:18px;background:var(--soft);padding:32px}
-button{border-radius:980px;padding:12px 24px;font:400 17px var(--sans);letter-spacing:-.02em;border:0;background:var(--blue);color:#fff}
-button.ghost{background:transparent;color:var(--blue);border:0;padding-inline:8px}
-button.ghost::after{content:" ›"}
-button:hover:not(:disabled){filter:brightness(1.06)}
-.controls{justify-content:center}
-#status{text-align:center;width:100%;font-size:15px}
-.stat{text-align:center;justify-items:center}
-.stat .v{font:700 clamp(44px,5.4vw,64px)/1 var(--sans);letter-spacing:-.01em}
-.stat .k{margin-inline:auto}
-.steps{text-align:center}
-.step{justify-items:center}
-.step b{font-size:21px;letter-spacing:.01em}
-.step i{font-family:var(--sans);font-size:14px;color:var(--blue)}
-th{font:600 12px var(--sans);letter-spacing:0;text-transform:none;color:var(--muted)}
-table{font:15px var(--sans);letter-spacing:-.01em}
-.pill{background:transparent;padding:0;margin-right:6px;font:600 13px var(--sans)}
-.logo{border-radius:18px}
-.chips{justify-content:center}
-.chips .pill{background:var(--soft);padding:7px 16px;border-radius:980px}
-.packs{justify-items:center;text-align:center}
-.legend{justify-content:center}
-.legend i{border-radius:50%}
-ul{justify-self:center}
-.term{border-radius:12px;box-shadow:0 20px 50px -20px rgba(0,0,0,.35)}
+/* Spacing: 8-point grid. Tight inside a group, generous between groups, one left edge. */
+:root{--s1:8px;--s2:16px;--s3:24px;--s4:32px;--s5:48px;--s6:64px;--s7:96px;--s8:128px}
+body{padding-block:var(--s7) var(--s8)}
+main{gap:var(--s8)}
+.hero{gap:var(--s3);padding-block:0}
+.hero .kicker{margin-bottom:calc(var(--s1) * -1)}
+.display{margin-top:calc(var(--s1) * -1)}
+.lede{max-width:34ch}
+nav{margin-top:var(--s1);gap:var(--s4)}
+nav a{min-height:44px;display:inline-flex;align-items:center}
+section{gap:var(--s4)}
+section > .kicker + h2{margin-top:calc(var(--s3) * -1)}
+section > h2 + p.cap{margin-top:calc(var(--s2) * -1)}
+.cap{max-width:64ch}
+section > p.cap:last-child{margin-top:calc(var(--s1) * -1)}
+.box{padding:var(--s4);border-radius:24px}
+.box > .term,.box > svg{border-radius:16px}
+.grid2{gap:var(--s3)}
+.box.stat{padding:var(--s4)}
+.stat{gap:var(--s1)}
+.steps{gap:var(--s5) var(--s4)}
+.step{gap:var(--s1)}
+.controls{gap:var(--s2);margin-top:var(--s1)}
+button{min-height:44px;padding:0 var(--s3)}
+th,td{padding:var(--s2) var(--s3) var(--s2) 0}
+.logos{gap:var(--s2)}
+.logo{padding:var(--s3);gap:var(--s2);border-radius:16px}
+.packs{gap:var(--s2);margin-top:var(--s2)}
+ul{gap:var(--s1)}
+.legend{gap:var(--s3)}
+#log{padding:var(--s3)}
+.term-bar{padding:12px var(--s2)}
 </style>
 </head>
 <body>
 <main>
 
 <header class="hero">
-  
+  <svg class="net" viewBox="0 0 1040 420" aria-hidden="true"></svg>
   <span class="kicker">Flower Collaborative Agent Hackathon, Stanford · September 29, 2026</span>
-  <p class="product">Wagent</p>
-  <h1>A warden for your AI agents.</h1>
+  <h1>Wagent</h1>
+  <p class="display">A warden for your AI agents.</p>
   <p class="lede">When one agent is stopped, every other agent learns the rule, and no data leaves the machine.</p>
   <nav><a href="#problem">Problem</a><a href="#live">Live</a><a href="#how">How it works</a><a href="#results">Results</a><a href="#runs">Runs</a><a href="https://github.com/irangareddy/wagent" target="_blank" rel="noopener">GitHub</a><a href="https://flower.ai/apps/irangareddy/wagent" target="_blank" rel="noopener">Flower Hub</a></nav>
 </header>
