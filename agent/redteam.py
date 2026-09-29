@@ -285,7 +285,8 @@ def run_coordinator_scripted(
     shared_rules: Sequence[Rule] = (),
 ) -> bool:
     """Run target discovery, first probe, rule learning, and fleet propagation."""
-    if not is_scripted_attack(prompt):
+    # The coordinator only routes; nodes enforce their own operator opt-in.
+    if SCRIPTED_ATTACK_TAG not in prompt_payload(prompt):
         return False
     directive = parse_directive(prompt)
     nodes_outcome = guarded_call(
