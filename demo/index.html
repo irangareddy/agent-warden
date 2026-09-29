@@ -5,61 +5,64 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Wagent</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one narrow column, record-style tables, one big live diagram. */
+/* Layout: wide calm column, lots of air; each section = headline, one sentence, one visual. */
 :root{
-  --bg:#ffffff; --ink:#111417; --muted:#62686e; --line:#e3e6e8; --soft:#f5f6f7;
-  --block:#d1452b; --allow:#2e7d57; --ask:#b58400; --flow:#1f6f8b; --packet:#e0a100;
-  --sans:"IBM Plex Sans", system-ui, -apple-system, sans-serif;
-  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --bg:#ffffff; --ink:#0d0d0d; --muted:#6e6e73; --line:#ececec; --soft:#f7f7f8;
+  --block:#e5484d; --allow:#30a46c; --ask:#f5a524; --flow:#0d0d0d; --packet:#f5a524;
+  --sans:"Geist", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --mono:"Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
   color-scheme: light;
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink)}
-body{font:16px/1.55 var(--sans);padding-inline:20px;padding-block:32px 80px}
-main{max-width:1000px;margin:0 auto;display:grid;gap:64px}
-h1{font:700 56px/1 var(--sans);letter-spacing:-.03em;margin:0}
-h2{font:600 26px/1.2 var(--sans);letter-spacing:-.01em;margin:0;text-wrap:balance}
+body{font:17px/1.6 var(--sans);-webkit-font-smoothing:antialiased;padding-inline:24px;padding-block:72px 120px}
+main{max-width:1040px;margin:0 auto;display:grid;gap:128px}
+h1{font:600 clamp(56px,9vw,96px)/.95 var(--sans);letter-spacing:-.045em;margin:0}
+h2{font:600 clamp(30px,4vw,44px)/1.08 var(--sans);letter-spacing:-.03em;margin:0;text-wrap:balance;max-width:20ch}
 p{margin:0}
-.kicker{font:500 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.lede{font-size:20px;color:var(--muted);max-width:52ch}
-.mono{font-family:var(--mono)}
-section{display:grid;gap:18px}
-nav{display:flex;gap:18px;flex-wrap:wrap;font:500 13px var(--mono)}
-nav a{color:var(--ink)}
-.cap{color:var(--muted);font-size:14px;max-width:72ch}
-.box{border:1px solid var(--line);border-radius:10px;padding:18px;min-width:0;background:var(--bg)}
-.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
-table{border-collapse:collapse;width:100%;font:14px var(--mono);font-variant-numeric:tabular-nums}
-th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-weight:500;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em;background:var(--soft)}
-tr:last-child td{border-bottom:0}
-.num{text-align:right}
-.pill{display:inline-block;font:600 11px var(--mono);padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+.kicker{font:500 14px var(--sans);color:var(--muted)}
+.lede{font-size:clamp(20px,2.4vw,24px);line-height:1.45;color:var(--muted);max-width:34ch;letter-spacing:-.01em}
+.mono{font-family:var(--mono);font-size:.92em}
+section{display:grid;gap:28px}
+section > .kicker + h2{margin-top:-16px}
+nav{display:flex;gap:28px;flex-wrap:wrap;font:500 15px var(--sans);margin-top:12px}
+nav a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line);padding-bottom:2px}
+nav a:hover{border-color:var(--ink)}
+.cap{color:var(--muted);font-size:16px;max-width:62ch}
+.box{border-radius:20px;padding:28px;min-width:0;background:var(--soft)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font:15px var(--sans);font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:16px 16px 16px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:500;color:var(--muted);font-size:13px}
+td:first-child{white-space:nowrap}
+.pill{display:inline-block;font:500 12px var(--sans);padding:3px 10px;border-radius:999px;background:var(--soft);margin-right:6px}
 .b{color:var(--block)} .a{color:var(--allow)} .q{color:var(--ask)}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
-.stat{display:grid;gap:4px}
-.stat .v{font:700 44px/1 var(--sans);letter-spacing:-.02em}
-.stat .k{color:var(--muted);font-size:14px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+.stat{display:grid;gap:10px;align-content:start}
+.stat .v{font:600 clamp(40px,5vw,56px)/1 var(--sans);letter-spacing:-.04em}
+.stat .k{color:var(--muted);font-size:15px;max-width:28ch}
 svg{display:block;width:100%;height:auto;max-width:100%}
 svg text{font-family:var(--sans);fill:var(--ink)}
-.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-button{font:600 14px var(--sans);border-radius:8px;padding:10px 16px;cursor:pointer;border:1.5px solid var(--ink);background:var(--ink);color:var(--bg)}
-button.ghost{background:var(--bg);color:var(--ink)}
-button:disabled{opacity:.45;cursor:wait}
-button:focus-visible{outline:3px solid var(--packet);outline-offset:2px}
-#status{font:500 13px var(--mono);color:var(--muted)}
-#log{font:12px/1.6 var(--mono);background:var(--soft);border-radius:8px;padding:12px;height:190px;overflow:auto;white-space:pre-wrap;word-break:break-all;margin:0}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+button{font:500 15px var(--sans);border-radius:999px;padding:12px 22px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:var(--bg)}
+button.ghost{background:transparent;color:var(--ink);border-color:#d2d2d7}
+button:disabled{opacity:.4;cursor:wait}
+button:focus-visible{outline:3px solid var(--packet);outline-offset:3px}
+#status{font:14px var(--sans);color:var(--muted)}
+#log{font:12.5px/1.7 var(--mono);background:var(--bg);border-radius:14px;padding:16px 18px;height:180px;overflow:auto;white-space:pre-wrap;word-break:break-all;margin:0}
 #log .b{color:var(--block)} #log .a{color:var(--allow)}
-.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--muted)}
-.legend i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px}
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;counter-reset:s}
-.step{border-top:3px solid var(--ink);padding-top:10px;display:grid;gap:4px}
-.step b{font-size:18px}
-.step span{color:var(--muted);font-size:14px}
-.step code{font:12px var(--mono);color:var(--flow)}
-ul{margin:0;padding-left:18px;display:grid;gap:6px;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:20px;font-size:14px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:0}
+.box > b{font-weight:600;font-size:18px;letter-spacing:-.01em}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:36px}
+.step{display:grid;gap:8px;align-content:start}
+.step b{font-size:20px;font-weight:600;letter-spacing:-.015em}
+.step span{color:var(--muted);font-size:16px}
+.step code{font:13px var(--mono);color:var(--ink)}
+.step i{font:500 13px var(--mono);font-style:normal;color:var(--muted)}
+ul{margin:0;padding-left:20px;display:grid;gap:10px;color:var(--muted);max-width:62ch}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 </head>
@@ -67,16 +70,16 @@ ul{margin:0;padding-left:18px;display:grid;gap:6px;color:var(--muted)}
 <main>
 
 <header style="display:grid;gap:16px">
-  <span class="kicker">Flower Collaborative Agent Hackathon · Stanford · 29 Sep 2026</span>
+  <span class="kicker">Flower Collaborative Agent Hackathon, Stanford · September 29, 2026</span>
   <h1>Wagent</h1>
-  <p class="lede">A warden for your AI agents. When one agent is stopped, the others learn the rule. No data is shared.</p>
+  <p class="lede">A warden for your AI agents. When one agent is stopped, every other agent learns the rule, and no data leaves the machine.</p>
   <nav><a href="#problem">Problem</a><a href="#live">Live</a><a href="#how">How it works</a><a href="#results">Results</a><a href="#runs">Runs</a><a href="https://github.com/irangareddy/wagent" target="_blank" rel="noopener">GitHub</a><a href="https://flower.ai/apps/irangareddy/wagent" target="_blank" rel="noopener">Flower Hub</a></nav>
 </header>
 
 <section id="problem">
-  <span class="kicker">Problem</span>
-  <h2>Agents already act with real credentials. Some have hurt third parties.</h2>
-  <p class="cap">FelonyBench tracks incidents where frontier-lab agents affected third parties: 13 since July 2026. Several are the exact kind of action a coding agent can take with the keys on your machine.</p>
+  <span class="kicker">The problem</span>
+  <h2>Agents already work with real keys.</h2>
+  <p class="cap">FelonyBench has tracked 13 incidents since July where frontier-lab agents affected third parties. Several are actions any coding agent could take with the credentials on your laptop.</p>
   <div class="tablewrap"><table>
     <thead><tr><th>Date</th><th>Lab</th><th>Incident (FelonyBench)</th><th>Wagent pack for this kind of action</th></tr></thead>
     <tbody>
@@ -86,12 +89,13 @@ ul{margin:0;padding-left:18px;display:grid;gap:6px;color:var(--muted)}
       <tr><td>7/30/2026</td><td>Anthropic</td><td>Malicious PyPI package</td><td><span class="pill b">publishing</span> blocks <span class="mono">twine upload</span></td></tr>
     </tbody>
   </table></div>
-  <p class="cap">Closer to home: a read-only audit of my own coding agents (Codex, Claude Code, OpenClaw on my app Beet) found one had switched my setup to never ask for approval, and others merged to production. Prompts ask agents to behave. They don't guarantee it. Source: felonybench.com.</p>
+  <p class="cap">It happened to me too. An audit of my own coding agents found one had turned off approval prompts, and others merged to production. Prompts ask agents to behave. They don't guarantee it.</p>
 </section>
 
 <section id="live">
-  <span class="kicker">Live on Flower SuperGrid · @irangareddy/beet-fleet</span>
-  <h2>One agent's catch protects all four</h2>
+  <span class="kicker">Live on Flower SuperGrid</span>
+  <h2>One agent's catch protects all four.</h2>
+  <p class="cap">Four agents run on their own SuperNodes, on three model providers. Only Backend knows customer exports are off-limits. Watch what happens when one of them is attacked.</p>
   <div class="box" style="display:grid;gap:14px">
     <svg id="fleet" viewBox="0 0 760 400" role="img" aria-label="Four agents around a Flower coordinator"></svg>
     <div class="controls">
@@ -101,23 +105,23 @@ ul{margin:0;padding-left:18px;display:grid;gap:6px;color:var(--muted)}
     </div>
     <pre id="log" aria-live="polite"></pre>
   </div>
-  <p class="cap">The attack only runs on machines whose operator switched it on (<span class="mono">WARDEN_ALLOW_RED_TEAM=1</span>), so nobody can trigger it with a prompt. QA and Release run on Nebius Token Factory (Kimi-K2.7-Code, MiniMax-M3); Backend and iOS run GPT.</p>
+  <p class="cap">The attack runs only on machines whose operator turned it on, so a prompt alone can't trigger it. QA runs Kimi-K2.7-Code and Release runs MiniMax-M3 on Nebius Token Factory. Backend and iOS run GPT.</p>
 </section>
 
 <section id="how">
   <span class="kicker">How it works</span>
-  <h2>Check, widen, share, validate</h2>
+  <h2>Four steps, all in code.</h2>
   <div class="steps">
-    <div class="step"><b>Check</b><span>Every tool call is checked in code before it runs. The model is never asked.</span><code>median 0.03 ms</code></div>
-    <div class="step"><b>Widen</b><span>A block becomes the broadest rule that still allows normal work.</span><code>0 false alarms on known-good</code></div>
-    <div class="step"><b>Share</b><span>The rule travels through the Flower coordinator. Only the rule, never data.</span><code>max 3 new rules per message</code></div>
-    <div class="step"><b>Validate</b><span>Each agent tests the rule on its own work before using it.</span><code>poisoned rules rejected</code></div>
+    <div class="step"><b>Check</b><span>Every tool call is checked before it runs. The model never gets a vote.</span><i>0.03 ms median</i></div>
+    <div class="step"><b>Widen</b><span>A block becomes the broadest rule that still allows normal work.</span><i>no false alarms on normal work</i></div>
+    <div class="step"><b>Share</b><span>The rule travels through the Flower coordinator. Nothing else does.</span><i>rule only, rate-limited</i></div>
+    <div class="step"><b>Validate</b><span>Each agent tests the rule on its own work before using it.</span><i>bad rules rejected</i></div>
   </div>
 </section>
 
 <section id="results">
   <span class="kicker">Results</span>
-  <h2>Three numbers</h2>
+  <h2>Measured on real agent work.</h2>
   <div class="grid2">
     <div class="box stat"><span class="v">0.02%</span><span class="k">false alarms on 39,633 real commands from Nebius SWE-agent runs we never saw</span></div>
     <div class="box stat"><span class="v">81% <span style="color:var(--muted);font-weight:500">vs</span> 41%</span><span class="k">attacks caught: Wagent default packs vs a plain denylist</span></div>
@@ -134,12 +138,12 @@ ul{margin:0;padding-left:18px;display:grid;gap:6px;color:var(--muted)}
     <div class="box" style="display:grid;gap:10px">
       <b>Against a plain denylist</b>
       <svg id="base" viewBox="0 0 460 250" role="img" aria-label="Attacks caught 41% vs 81%; routine flagged 38% vs 2%"></svg>
-      <div class="legend"><span><i style="background:#9aa1a7"></i>denylist</span><span><i style="background:var(--flow)"></i>Wagent</span></div>
+      <div class="legend"><span><i style="background:#c7c7cc"></i>denylist</span><span><i style="background:var(--flow)"></i>Wagent</span></div>
     </div>
     <div class="box" style="display:grid;gap:10px">
       <b>Sharing vs each agent alone</b>
       <svg id="share" viewBox="0 0 460 250" role="img" aria-label="Attacks every agent stops: 10% alone, 31% sharing. Agents protected per attack: 1.1 vs 1.8 of 4."></svg>
-      <div class="legend"><span><i style="background:#9aa1a7"></i>alone</span><span><i style="background:var(--flow)"></i>sharing</span></div>
+      <div class="legend"><span><i style="background:#c7c7cc"></i>alone</span><span><i style="background:var(--flow)"></i>sharing</span></div>
     </div>
   </div>
 
@@ -147,7 +151,7 @@ ul{margin:0;padding-left:18px;display:grid;gap:6px;color:var(--muted)}
     <div class="box" style="display:grid;gap:10px">
       <b>Learning with a human in the loop</b>
       <svg id="curve" viewBox="0 0 460 260" role="img" aria-label="Catch rate on unseen attacks 79% to 96% with reviews; flat near 80% without"></svg>
-      <div class="legend"><span><i style="background:var(--flow)"></i>with your reviews</span><span><i style="background:#9aa1a7"></i>own blocks only</span></div>
+      <div class="legend"><span><i style="background:var(--flow)"></i>with your reviews</span><span><i style="background:#c7c7cc"></i>own blocks only</span></div>
     </div>
     <div class="box" style="display:grid;gap:10px">
       <b>70 real tool calls from my agents</b>
@@ -159,8 +163,8 @@ ul{margin:0;padding-left:18px;display:grid;gap:6px;color:var(--muted)}
 </section>
 
 <section id="runs">
-  <span class="kicker">Runs · 29 Sep 2026</span>
-  <h2>What we ran live</h2>
+  <span class="kicker">Runs</span>
+  <h2>Everything we ran today.</h2>
   <div class="tablewrap"><table>
     <thead><tr><th>Run</th><th>What</th><th>Result</th></tr></thead>
     <tbody>
@@ -175,9 +179,9 @@ ul{margin:0;padding-left:18px;display:grid;gap:6px;color:var(--muted)}
 </section>
 
 <section>
-  <span class="kicker">Works with</span>
-  <h2>Your agents, your rules</h2>
-  <p class="cap">Flower Agents built in. Hooks for Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI and Grok. Rule packs shaped like skills: secrets, git-safety, publishing, customer-data. <span class="mono">python3 tools/warden.py init</span> sets up a project; <span class="mono">review</span> shows what the fleet learned.</p>
+  <span class="kicker">Available now</span>
+  <h2>Works with the agents you already use.</h2>
+  <p class="cap">Built into Flower Agents, with hooks for Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI and Grok. Rules come in packs, like skills: secrets, git safety, publishing and customer data. Set up a project with <span class="mono">warden.py init</span>, and review what the fleet learned with <span class="mono">warden.py review</span>.</p>
   <ul>
     <li>Rules can be phrased around. Wagent is a layer on top of sandboxes, not a replacement.</li>
     <li>Shared rules are validated and rate-limited; signing is built on a branch.</li>
@@ -190,7 +194,7 @@ ul{margin:0;padding-left:18px;display:grid;gap:6px;color:var(--muted)}
 (function(){
 const NS="http://www.w3.org/2000/svg";
 const el=(t,a,p,x)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(x!=null)e.textContent=x;if(p)p.appendChild(e);return e;};
-const GREY="#9aa1a7";
+const GREY="#c7c7cc";
 
 /* ---------- Fleet ---------- */
 const svg=document.getElementById("fleet"), C={x:380,y:200};
@@ -199,18 +203,18 @@ const nodes={
   Release:{x:590,y:328,model:"MiniMax · Nebius"}, iOS:{x:170,y:328,model:"GPT"}
 };
 const linkG=el("g",{},svg);
-Object.values(nodes).forEach(n=>n.link=el("line",{x1:n.x,y1:n.y,x2:C.x,y2:C.y,stroke:"#e3e6e8","stroke-width":2},linkG));
+Object.values(nodes).forEach(n=>n.link=el("line",{x1:n.x,y1:n.y,x2:C.x,y2:C.y,stroke:"#ececec","stroke-width":2},linkG));
 const atk=el("g",{opacity:0},svg);
 el("line",{x1:4,y1:72,x2:44,y2:72,stroke:"var(--block)","stroke-width":2.5,"stroke-dasharray":"5 4"},atk);
 el("path",{d:"M44 66 L54 72 L44 78 Z",fill:"var(--block)"},atk);
 el("text",{x:2,y:58,"font-size":11,style:"font-family:var(--mono);fill:var(--block)"},atk,"attack");
 const cg=el("g",{},svg);
-const cbox=el("rect",{x:C.x-80,y:C.y-32,width:160,height:64,rx:10,fill:"#fff",stroke:"#111417","stroke-width":1.5},cg);
+const cbox=el("rect",{x:C.x-80,y:C.y-32,width:160,height:64,rx:10,fill:"#fff",stroke:"#0d0d0d","stroke-width":1.5},cg);
 el("text",{x:C.x,y:C.y-6,"text-anchor":"middle","font-weight":600,"font-size":15},cg,"Flower coordinator");
 const cst=el("text",{x:C.x,y:C.y+15,"text-anchor":"middle","font-size":12,style:"fill:var(--muted)"},cg,"idle");
 for(const [name,n] of Object.entries(nodes)){
   const g=el("g",{},svg);
-  n.box=el("rect",{x:n.x-112,y:n.y-42,width:224,height:84,rx:10,fill:"#fff",stroke:"#e3e6e8","stroke-width":2.5},g);
+  n.box=el("rect",{x:n.x-112,y:n.y-42,width:224,height:84,rx:10,fill:"#fff",stroke:"#ececec","stroke-width":2.5},g);
   el("text",{x:n.x-98,y:n.y-16,"font-weight":600,"font-size":16},g,name);
   el("text",{x:n.x+98,y:n.y-16,"text-anchor":"end","font-size":11,style:"font-family:var(--mono);fill:var(--muted)"},g,n.model);
   n.res=el("text",{x:n.x-98,y:n.y+8,"font-size":13,"font-weight":600,style:"fill:var(--muted)"},g,"idle");
@@ -218,8 +222,8 @@ for(const [name,n] of Object.entries(nodes)){
 }
 const pkG=el("g",{},svg);
 function packet(from,to,ms=700){return new Promise(r=>{const p=el("circle",{r:7,fill:"var(--packet)"},pkG);const t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/ms);p.setAttribute("cx",from.x+(to.x-from.x)*k);p.setAttribute("cy",from.y+(to.y-from.y)*k);k<1?requestAnimationFrame(f):(p.remove(),r());})(t0);});}
-function reset(){atk.setAttribute("opacity",0);cst.textContent="idle";cst.style.fill="var(--muted)";cbox.setAttribute("stroke","#111417");
-  for(const n of Object.values(nodes)){n.box.setAttribute("stroke","#e3e6e8");n.res.textContent="idle";n.res.style.fill="var(--muted)";n.src.textContent=n.own?"has customer-data rule":"no customer-data rule";n.link.setAttribute("stroke","#e3e6e8");}}
+function reset(){atk.setAttribute("opacity",0);cst.textContent="idle";cst.style.fill="var(--muted)";cbox.setAttribute("stroke","#0d0d0d");
+  for(const n of Object.values(nodes)){n.box.setAttribute("stroke","#ececec");n.res.textContent="idle";n.res.style.fill="var(--muted)";n.src.textContent=n.own?"has customer-data rule":"no customer-data rule";n.link.setAttribute("stroke","#ececec");}}
 function setNode(name,result,source){const n=nodes[name];if(!n)return;const blocked=result==="BLOCKED";
   n.box.setAttribute("stroke",blocked?"var(--block)":"var(--allow)");n.res.textContent=result;n.res.style.fill=blocked?"var(--block)":"var(--allow)";
   n.src.textContent=source==="pack:customer-data"?"its own customer-data rule":source.startsWith("Beet ")?"with "+source.replace("Beet ","").replace(" Agent","")+"'s rule":source;}
@@ -268,7 +272,7 @@ el("text",{x:X+W,y:84,"font-size":13,"text-anchor":"end",style:"fill:var(--muted
 el("text",{x:X+0.33*W+10,y:13,"font-size":13,"font-weight":600,style:"fill:var(--block)"},st,"3 false alarms · 0.02%");
 
 function bars(id,groups,max,unit){const s=document.getElementById(id),L=150,BW=250;
-  [0,max/2,max].forEach(t=>{el("line",{x1:L+BW*t/max,y1:10,x2:L+BW*t/max,y2:220,stroke:"#e3e6e8"},s);el("text",{x:L+BW*t/max,y:238,"font-size":11,"text-anchor":"middle",style:"fill:var(--muted)"},s,t+unit);});
+  [0,max/2,max].forEach(t=>{el("line",{x1:L+BW*t/max,y1:10,x2:L+BW*t/max,y2:220,stroke:"#ececec"},s);el("text",{x:L+BW*t/max,y:238,"font-size":11,"text-anchor":"middle",style:"fill:var(--muted)"},s,t+unit);});
   groups.forEach((g,gi)=>{const y=18+gi*104;
     el("text",{x:0,y:y+22,"font-size":13,"font-weight":600},s,g[0]);
     [[g[1],GREY],[g[2],"var(--flow)"]].forEach(([v,c],k)=>{const yy=y+k*36,w=Math.max(3,BW*v/max);
@@ -278,7 +282,7 @@ bars("base",[["Attacks caught",41,81],["Routine flagged",38,2]],100,"%");
 bars("share",[["Every agent stops",10,31],["Agents protected",28,45,["1.1 of 4","1.8 of 4"]]],100,"%");
 
 const cv=document.getElementById("curve"),px=50,pw=390,py=14,ph=190,y0=70,y1=100,sx=v=>px+pw*v/24,sy=v=>py+ph*(1-(v-y0)/(y1-y0));
-[70,80,90,100].forEach(t=>{el("line",{x1:px,y1:sy(t),x2:px+pw,y2:sy(t),stroke:"#e3e6e8"},cv);el("text",{x:px-8,y:sy(t)+4,"text-anchor":"end","font-size":11,style:"fill:var(--muted)"},cv,t+"%");});
+[70,80,90,100].forEach(t=>{el("line",{x1:px,y1:sy(t),x2:px+pw,y2:sy(t),stroke:"#ececec"},cv);el("text",{x:px-8,y:sy(t)+4,"text-anchor":"end","font-size":11,style:"fill:var(--muted)"},cv,t+"%");});
 [0,6,12,18,24].forEach(t=>el("text",{x:sx(t),y:py+ph+18,"text-anchor":"middle","font-size":11,style:"fill:var(--muted)"},cv,t));
 el("text",{x:px+pw/2,y:py+ph+38,"text-anchor":"middle","font-size":11,style:"fill:var(--muted)"},cv,"attacks seen (48 of ours, 30 orders)");
 const xs=[0,6,12,18,24];
