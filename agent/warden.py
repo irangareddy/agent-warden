@@ -289,6 +289,12 @@ class Warden:
             elif ok and self.learn(rule, validate=False):
                 self._log_rule(rule, accepted=True, why=why)
                 accepted.append(rule)
+            elif ok:
+                # Already enforced from an earlier run: report it as accepted so
+                # callers (e.g. the scripted probe) see the rule they were sent.
+                existing = next((r for r in self.shared if r.pattern == rule.pattern), None)
+                if existing is not None:
+                    accepted.append(existing)
             elif not ok:
                 self._log_rule(rule, accepted=False, why=why)
                 rejected.append((rule, why))

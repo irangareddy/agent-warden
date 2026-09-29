@@ -65,7 +65,7 @@ Each of the four demo nodes sees only its own folder and its own key, and uses f
 
 ### Mix models with Nebius
 
-Put `NEBIUS_API_KEY=...` in `fleet/.env`, then run the probe first. The override moves the QA and Release agents to the two Nebius Token Factory models, Kimi-K2.7-Code and MiniMax-M3, while the other agents keep the default. Same rules, different models.
+Put `NEBIUS_KIMI_API_KEY=...` and `NEBIUS_MINIMAX_API_KEY=...` (one key per model) in `fleet/.env`, then run the probe first. The override moves the QA and Release agents to the two Nebius Token Factory models, Kimi-K2.7-Code and MiniMax-M3, while the other agents keep the default. Same rules, different models: in our live run, agents on Kimi, MiniMax and GPT each blocked the attack with the rule Backend shared (run 8508852592345920671).
 
 ```bash
 uv run --env-file fleet/.env python tools/nebius_probe.py

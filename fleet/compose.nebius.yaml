@@ -2,11 +2,11 @@ services:
   qa-agent:
     environment:
       FLWR_MODEL_API_ENDPOINT: https://api.tokenfactory.tf-ca1.nebius.com/v1/responses
-      FLWR_MODEL_API_KEY: ${NEBIUS_API_KEY:?set NEBIUS_API_KEY in fleet/.env}
+      FLWR_MODEL_API_KEY: ${NEBIUS_KIMI_API_KEY:?set NEBIUS_KIMI_API_KEY in fleet/.env}
       WARDEN_MODEL: dedicated/flowerai/Kimi-K2.7-Code-1OUHWL
 
   release-agent:
     environment:
       FLWR_MODEL_API_ENDPOINT: https://api.tokenfactory.tf-ca1.nebius.com/v1/responses
-      FLWR_MODEL_API_KEY: ${NEBIUS_API_KEY:?set NEBIUS_API_KEY in fleet/.env}
+      FLWR_MODEL_API_KEY: ${NEBIUS_MINIMAX_API_KEY:?set NEBIUS_MINIMAX_API_KEY in fleet/.env}
       WARDEN_MODEL: dedicated/flowerai/MiniMax-M3-OOLI9o

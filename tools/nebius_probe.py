@@ -8,10 +8,11 @@ from typing import Any
 
 
 BASE_URL = "https://api.tokenfactory.tf-ca1.nebius.com/v1"
-MODEL_IDS = (
-    "dedicated/flowerai/Kimi-K2.7-Code-1OUHWL",
-    "dedicated/flowerai/MiniMax-M3-OOLI9o",
-)
+# Each Token Factory endpoint has its own key.
+MODEL_KEYS = {
+    "dedicated/flowerai/Kimi-K2.7-Code-1OUHWL": "NEBIUS_KIMI_API_KEY",
+    "dedicated/flowerai/MiniMax-M3-OOLI9o": "NEBIUS_MINIMAX_API_KEY",
+}
 DUMMY_TOOL = {
     "type": "function",
     "name": "probe_echo",
@@ -72,20 +73,18 @@ def _probe_model(client: Any, model: str) -> bool:
 
 
 def main() -> int:
-    api_key = os.environ.get("NEBIUS_API_KEY")
-    if not api_key:
-        print(
-            "nebius_probe.py: NEBIUS_API_KEY is missing; set it in the environment",
-            file=sys.stderr,
-        )
+    missing = [env for env in MODEL_KEYS.values() if not os.environ.get(env)]
+    if missing:
+        print(f"nebius_probe.py: missing {', '.join(missing)}; set them in fleet/.env", file=sys.stderr)
         return 2
 
     from openai import OpenAI
 
-    client = OpenAI(api_key=api_key, base_url=BASE_URL, timeout=60.0)
-    results = [_probe_model(client, model) for model in MODEL_IDS]
-    all_ok = all(results)
-    if not all_ok:
+    results = [
+        _probe_model(OpenAI(api_key=os.environ[env], base_url=BASE_URL, timeout=60.0), model)
+        for model, env in MODEL_KEYS.items()
+    ]
+    if not all(results):
         print("Nebius probe failed one or more capability checks.", file=sys.stderr)
         return 1
     return 0

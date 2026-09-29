@@ -37,4 +37,7 @@ assert [r.pattern for r in accepted] == [rule.pattern] and not rejected
 after = qa.check(probe)
 assert after.action == "block" and after.rule_id == rule.id, after
 print(f"3. QA validated Backend's rule on its own work, learned it, and now blocks the variant ({after.rule_id})")
+again, rejected = qa.learn_from_prompt(attach_signatures("probe again", [rule]))
+assert [r.pattern for r in again] == [rule.pattern] and not rejected, "a rule learned in an earlier run must still be reported"
+print("4. Sent the same rule again (a later run): QA reports it as already accepted")
 print("PASS: the block came only from the shared rule")
