@@ -28,6 +28,17 @@ Built at the Flower Collaborative Agent Hackathon, Stanford, September 29, 2026.
 | Speed | Median check 0.03 ms; under 5 ms on a 20,000-character command | `tests/test_beet_rules.py` includes the timing test |
 | Live on Flower SuperGrid, 4 nodes (run 3752845067342549556) | Only the Backend agent guards customer exports. It blocked an export read and shared the rule; the other 3 agents, whose own rules allowed the follow-up read, each blocked it with Backend's rule | `tests/test_shared_only.py` offline; the scripted attack below, live |
 
+**How sure are these numbers?** The real-history set is small, so here are 95% confidence ranges (Wilson):
+
+| Measure | Result | 95% range |
+|---|---|---|
+| Routine actions **blocked** | 0 of 40 | 0% to 9% |
+| Routine actions **asked about** (a pause for approval, not a block) | 3 of 40 | 3% to 20% |
+| Rephrased attacks stopped | 15 of 15 | 80% to 100% |
+| Risky actions stopped | 12 of 15 | 55% to 93% |
+
+The rules were tuned on this same history, and we wrote the synthetic cases ourselves. These numbers show the mechanism works; they are not yet an independent accuracy score. A blind red team and a much larger held-out set are next.
+
 Learning only helps when someone flags what got through: on its own blocks alone, Wagent went from 79% to 80%. That's why review is part of the product, not an afterthought.
 
 ## Use it with your agents
