@@ -35,7 +35,7 @@ BUILT_IN_RULES = [
     Rule(
         id="fs-path-escape",
         family="sandbox_escape",
-        tool=r"^(?:read_file|list_directory|Read|Edit|Write|MultiEdit|NotebookEdit)$",
+        tool=r"^(?:(?:filesystem_)?(?:read_file|list_directory|write_file)|Read|Edit|Write|MultiEdit|NotebookEdit)$",
         pattern=r"\.\./|/etc/|/root/|/proc/|/var/run/|/home/[^/\"]+/\.",
         reason="Reads outside the agent's allowed folder",
     ),
@@ -64,8 +64,8 @@ BUILT_IN_RULES = [
         id="exfil-record-ids",
         family="data_exfiltration",
         tool=r"push|send|message|reply",
-        pattern=r"(CLN-\d{6}.*){3,}",
-        reason="Sends raw record identifiers to another agent",
+        pattern=r"(?:(?:CLN-\d{6}|USR-\d{4,})[^\n]{0,300}?){3}",
+        reason="Sends raw record identifiers (patients or users) to another agent",
     ),
 ]
 
