@@ -218,7 +218,16 @@ class Warden:
     def learn_from_prompt(self, prompt: str) -> tuple[list[Rule], list[tuple[Rule, str]]]:
         """Pick up signatures another node sent. Returns (accepted, rejected with reason)."""
         accepted, rejected = [], []
-        for raw in re.findall(re.escape(SIGNATURE_PREFIX) + r"(\{.*?\})(?=\s|$)", prompt, re.S):
+        # Flower hands a node its message as compact JSON {"src_node_id", "payload"},
+        # so unwrap the payload first; otherwise the signature's quotes are escaped.
+        text = prompt
+        try:
+            wrapped = json.loads(prompt)
+            if isinstance(wrapped, dict) and isinstance(wrapped.get("payload"), str):
+                text = wrapped["payload"]
+        except (json.JSONDecodeError, TypeError):
+            pass
+        for raw in re.findall(re.escape(SIGNATURE_PREFIX) + r"(\{.*?\})(?=\s|$)", text, re.S):
             try:
                 rule = Rule(**json.loads(raw))
             except (json.JSONDecodeError, TypeError):
