@@ -232,6 +232,11 @@ section > h2 + p.cap{margin-top:calc(var(--s2) * -1)}
 #fleet{max-height:calc(100svh - 360px);min-height:220px}
 .live-grid .term{max-height:calc(100svh - 330px)}
 @media (max-height:700px){.slide{padding-block:var(--s4)} section{gap:var(--s3)} .box{padding:var(--s3)}}
+.line-draw{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);transition:stroke-dashoffset 1.2s var(--ease)}
+.drawn .line-draw{stroke-dashoffset:0}
+#curve .pt{opacity:0;transition:opacity .3s var(--ease)}
+#curve.drawn .pt{opacity:1}
+@media (prefers-reduced-motion: reduce){.line-draw{stroke-dasharray:none;stroke-dashoffset:0}#curve .pt{opacity:1}}
 </style>
 </head>
 <body>
@@ -536,9 +541,10 @@ const cv=document.getElementById("curve"),px=50,pw=390,py=14,ph=190,y0=70,y1=100
 el("text",{x:px+pw/2,y:py+ph+38,"text-anchor":"middle","font-size":11,style:"fill:var(--muted)"},cv,"attacks seen (48 of ours, 30 orders)");
 const xs=[0,6,12,18,24];
 [[[79,90,93,95,96],"var(--flow)"],[[79,80,81,81,80],GREY]].forEach(([ys,c])=>{
-  el("polyline",{points:xs.map((x,i)=>sx(x)+","+sy(ys[i])).join(" "),fill:"none",stroke:c,"stroke-width":3},cv);
-  ys.forEach((v,i)=>el("circle",{cx:sx(xs[i]),cy:sy(v),r:i===4?5:3.5,fill:c},cv));
-  el("text",{x:sx(24)-8,y:sy(ys[4])-10,"text-anchor":"end","font-size":13,"font-weight":700,style:"fill:"+c},cv,ys[4]+"%");});
+  const pl=el("polyline",{points:xs.map((x,i)=>sx(x)+","+sy(ys[i])).join(" "),fill:"none",stroke:c,"stroke-width":3,class:"line-draw"},cv);
+  try{pl.style.setProperty("--len",Math.ceil(pl.getTotalLength())+1);}catch(e){pl.style.setProperty("--len",2000);}
+  ys.forEach((v,i)=>el("circle",{cx:sx(xs[i]),cy:sy(v),r:i===4?5:3.5,fill:c,class:"pt",style:"transition-delay:"+(i*0.25)+"s"},cv));
+  el("text",{x:sx(24)-8,y:sy(ys[4])-10,"text-anchor":"end","font-size":13,"font-weight":700,class:"pt",style:"fill:"+c+";transition-delay:1.15s"},cv,ys[4]+"%");});
 
 const h=document.getElementById("hist"),HL=130,HW=320,cols=["var(--block)","var(--ask)","var(--allow)"];
 [["Routine",[0,3,37],40],["Rephrased attacks",[12,3,0],15],["Risky",[6,6,3],15]].forEach((r,i)=>{const y=16+i*60;let x=HL;
@@ -548,8 +554,8 @@ const h=document.getElementById("hist"),HL=130,HW=320,cols=["var(--block)","var(
 /* ---------- Reveal on scroll, bars grow, numbers count ---------- */
 const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
 const io=("IntersectionObserver" in window)?new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add("in","drawn");io.unobserve(e.target);}),{threshold:.15}):null;
-document.querySelectorAll(".reveal, svg.net, svg#strip, svg#base, svg#share, svg#hist").forEach(t=>io?io.observe(t):t.classList.add("in","drawn"));
-setTimeout(()=>document.querySelectorAll(".reveal, svg.net, svg#strip, svg#base, svg#share, svg#hist").forEach(t=>t.classList.add("in","drawn")),2500);
+document.querySelectorAll(".reveal, svg.net, svg#strip, svg#base, svg#share, svg#curve, svg#hist").forEach(t=>io?io.observe(t):t.classList.add("in","drawn"));
+if(!io)document.querySelectorAll(".reveal, svg.net, svg#strip, svg#base, svg#share, svg#curve, svg#hist").forEach(t=>t.classList.add("in","drawn"));
 
 /* ---------- Hero network drawing ---------- */
 (function(){const n=document.querySelector(".net");if(!n)return;
