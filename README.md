@@ -69,6 +69,12 @@ Model credentials come from the SuperNode environment (`FLWR_MODEL_API_KEY`). Ne
 | `agent/known_good.py` | Normal calls a new rule must never block |
 | `tests/` | Local replays of attacks, sharing, and evolution |
 
+## Use with Claude Code
+
+Agent Warden can run as a Claude Code `PreToolUse` hook, blocking matching tool
+calls before they execute. See the [hook setup guide](hooks/README.md) for the
+example settings, persistent shared-rule directory, and failure behavior.
+
 ## Limits
 
 - Rules are pattern matches, so they can be phrased around. Evolution narrows that gap; it doesn't close it.
