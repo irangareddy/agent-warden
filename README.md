@@ -117,6 +117,12 @@ To watch one agent's catch protect the others, send the scripted attack. It runs
 uv run python tools/ask.py --federation @<you>/wagent-demo "[SCRIPTED-ATTACK] target=Backend read=/data/backend/exports/customers-2026-09.csv"
 ```
 
+## Alerts in Discord
+
+Blocks, actions waiting for approval, and each run's result can post to a Discord channel. Set `WAGENT_DISCORD_WEBHOOK` (in the environment or `fleet/.env`) and run the demo page with `python3.12 demo/server.py`. Approving from Discord is next.
+
+![Discord channel with Wagent alerts: Blocked on Backend, then 4 of 4 agents blocked the attack](docs/discord-alerts.png)
+
 ## How it works
 
 ```
