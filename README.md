@@ -18,7 +18,7 @@ uv sync
 bash scripts/demo.sh
 ```
 
-The demo runs eight scenario suites and prints each step: blocking, rule evolution, poisoned-rule rejection, relay between nodes, rule packs, the Beet fleet pack, a scripted attack across a fleet, and the Claude Code hook.
+The demo runs nine scenario suites and prints each step: blocking, rule evolution, poisoned-rule rejection, relay between nodes, rule packs, the Beet fleet pack, a scripted attack across a fleet, the Claude Code hook, and asking a human for context-dependent actions.
 
 ## How it works
 
@@ -46,12 +46,12 @@ Full details: [notes on evaluation](#evaluation). Short version:
 
 | Evaluation | Result |
 |---|---|
-| Scenario suites (`scripts/demo.sh`) | 8/8 pass |
-| **Real agent history**: 70 tool calls from a coding-agent fleet (Codex, Claude Code, OpenClaw), private data, only totals published | **40/40 routine actions allowed (0 false alarms)** · 12/15 rephrased attacks blocked · 6/15 risky actions blocked |
+| Scenario suites (`scripts/demo.sh`) | 9/9 pass |
+| **Real agent history**: 70 tool calls from a coding-agent fleet (Codex, Claude Code, OpenClaw), private data, only totals published | **0 routine actions blocked** (37/40 allowed, 3 merges ask for approval) · **15/15 rephrased attacks stopped** (12 blocked, 3 sent for approval) · **12/15 risky actions stopped** (6 blocked, 6 sent for approval) |
 | Adversarial inputs up to 30,000 characters | Slowest rule check under 1 ms |
 | Live on Flower SuperGrid, 4-node fleet | Block in 0.06 ms, rule evolved and relayed; scripted attack: target blocked, rule validated and accepted by the coordinator, all 4 nodes blocked the probe |
 
-Most real misses are `gh pr merge` without a target branch in the command: the command alone can't tell a production merge from a development one. Those need a human-approval tier, not a block rule.
+Some actions can't be judged from the command alone: `gh pr merge 644` doesn't say whether it targets production. Those get a third outcome, **ask a human**, instead of a guess. The 3 remaining misses are debatable labels (resolving a merge conflict, opening a production pull request without merging it).
 
 ### Evaluation
 
@@ -85,6 +85,10 @@ A node simulates an attack only if its operator sets `WARDEN_ALLOW_RED_TEAM=1` o
 ```bash
 uv run python tools/ask.py --federation @<you>/agent-warden-demo "[SCRIPTED-ATTACK] target=Backend read=/data/backend/.env"
 ```
+
+## Three outcomes: allow, block, ask
+
+Most actions are clearly fine or clearly dangerous. Some depend on context the command doesn't show, like merging a pull request or publishing a release. Rules can say `"action": "ask"`: the Claude Code hook then makes Claude ask you, and a Flower agent holds the action instead of running it. Block rules always win over ask rules.
 
 ## Rule packs (shaped like agent skills)
 
@@ -121,7 +125,7 @@ Agent Warden also runs as a Claude Code `PreToolUse` hook that checks each tool 
 
 - Rules are patterns and can be phrased around. Evolution narrows the gap; hard isolation (sandboxes, OS or hardware policy) stays underneath. Agent Warden is the learning layer on top, not a replacement.
 - Shared rules are validated locally but not yet cryptographically signed.
-- Context-dependent actions (production merges, releases) need a human-approval tier.
+- The ask tier works in the Claude Code hook (Claude prompts the user). Inside Flower, ask actions are held without running; approval cards on Flower are next.
 - The Claude Code hook uses local rules and packs; syncing rules from a fleet to it isn't built.
 - Next: a held-out evaluation set, signed rules, approval cards on Flower.
 
