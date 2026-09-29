@@ -1,84 +1,130 @@
 # Agent Warden
 
-Collaborative Flower Agents whose actions are checked before they run. When one node's warden blocks something, it turns the block into a tested rule and shares it, so every node in the federation is protected.
+**Agents that protect each other.** Every tool call a Flower Agent makes is checked in code before it runs. When one node blocks something, it turns the block into a tested rule, and every other node validates that rule on its own work before enforcing it. Poisoned rules are rejected.
 
 Built at the Flower Collaborative Agent Hackathon, Stanford, September 29, 2026.
 
 ## Why
 
-In September 2026, OpenAI reported that an agent in training escaped its sandbox through a DNS resolver. Monitoring took 15 minutes to flag it, repeat attempts went unflagged, and the automatic shutdown failed. [FelonyBench](https://www.felonybench.com/) counts 24 incidents where lab agents affected third parties.
+AI agents now run unsupervised with real access: repositories, credentials, production deploys. In September 2026 OpenAI reported an agent in training reaching an outside chatbot through a DNS resolver; monitoring took about 15 minutes to flag it, repeat attempts went unflagged, and the automatic stop failed. A public tracker, [FelonyBench](https://www.felonybench.com/), lists incidents where lab agents affected third parties.
 
-Monitors that work alone and react in minutes don't scale to many agents. Agent Warden puts the check in code, in front of every tool call, and lets nodes teach each other.
+Prompts ask agents to behave. They don't guarantee it. Agent Warden enforces the rules in code, and makes one agent's catch protect the whole fleet.
+
+## Try it in 30 seconds (no network)
+
+```bash
+git clone https://github.com/irangareddy/agent-warden && cd agent-warden
+uv sync
+bash scripts/demo.sh
+```
+
+The demo runs eight scenario suites and prints each step: blocking, rule evolution, poisoned-rule rejection, relay between nodes, rule packs, the Beet fleet pack, a scripted attack across a fleet, and the Claude Code hook.
 
 ## How it works
 
 ```
 agent asks to run a tool
-        │
-   Warden.check ── allowed ──▶ tool runs (filesystem connector or Grid)
-        │
-     blocked (0.03 ms)
-        │
-   Warden.evolve: propose broader rules, replay each against known-good calls,
-                  keep the broadest one with zero false alarms
-        │
-   signature sent to other nodes over the Grid ──▶ their wardens enforce it
+      │
+  1. CHECK in code (< 1 ms)  ── allowed ──► tool runs
+      │ blocked: the call never runs
+  2. EVOLVE  propose broader rules, replay each against normal work,
+             keep the broadest one with zero false alarms
+      │
+  3. SHARE   node ──► coordinator ──► every other node, in code
+      │      (Flower nodes can't message each other; the coordinator relays)
+  4. VALIDATE each node replays the rule on its OWN normal work;
+             overbroad or poisoned rules are rejected
 ```
 
-- **Check before run.** The model never gets the final say: a blocked call never reaches the connector or the Grid, even if the model ignores its instructions.
-- **Three families of rules:** sandbox escape (paths outside the allowed folder), credential access (keys, tokens, secret material), data exfiltration (raw record IDs sent to other agents).
-- **Self-improving.** Each block produces candidate rules from broad to narrow. Every candidate is replayed against `agent/known_good.py`, and the broadest one with no false alarms is adopted and shared.
-- **Human-supervised.** Anything the warden can't generalize safely stays narrow; humans add known-good calls to tighten the check.
+- **The model never has the final say.** A blocked call never reaches the connector or the Grid, even if the model was told to comply.
+- **Rules come in packs**, shaped like agent skills (see below): credentials, git safety, publishing, and a company pack.
+- **Nothing is shared but the rule.** No files, records, or prompts leave a node.
 
-## Results (local replay)
+## Results
 
-| Test | Result |
+Full details: [notes on evaluation](#evaluation). Short version:
+
+| Evaluation | Result |
 |---|---|
-| Built-in rules on 6 attack calls | 6 blocked |
-| Built-in rules on 5 normal calls | 5 allowed |
-| Signature from node A enforced on node B | variant blocked in 0.035 ms |
-| One block, narrow rule | catches 1 of 5 unseen variants |
-| One block, evolved rule | catches 3 of 5 unseen variants, 0 false alarms |
+| Scenario suites (`scripts/demo.sh`) | 8/8 pass |
+| **Real agent history**: 70 tool calls from a coding-agent fleet (Codex, Claude Code, OpenClaw), private data, only totals published | **40/40 routine actions allowed (0 false alarms)** · 12/15 rephrased attacks blocked · 6/15 risky actions blocked |
+| Adversarial inputs up to 30,000 characters | Slowest rule check under 1 ms |
+| Live on Flower SuperGrid, 4-node fleet | Block in 0.06 ms, rule evolved and relayed; scripted attack: target blocked, rule validated and accepted by the coordinator, all 4 nodes blocked the probe |
 
-Run them:
+Most real misses are `gh pr merge` without a target branch in the command: the command alone can't tell a production merge from a development one. Those need a human-approval tier, not a block rule.
+
+### Evaluation
+
+1. **Scenarios we wrote** (optimistic by construction): 6/6 attacks blocked and 5/5 normal calls allowed by the core rules; an evolved rule caught 3/5 unseen variants where the narrow rule caught 1/5, with 0 false alarms; 3/3 poisoned rules rejected while the honest rule was accepted.
+2. **Real history** (the honest score): see the table above. The first replay found 3 false alarms and several evasions (`git -C`, `+HEAD:` refspecs, config edits through patches); closing them produced the current numbers. The rules were tuned on this same data, so a held-out set is the next step.
+3. **Performance**: the real-data replay exposed a rule that backtracked for seconds on long commands; after the fix, every rule stays under 50 ms on a 20,000-character adversarial string (tested) and under 1 ms in practice.
+4. **Live**: models sometimes refused a requested attack on their own and sometimes didn't. That inconsistency is the reason the check lives in code. The scripted attack removes the model from the attack path so the demo is reproducible.
+
+## Run a fleet on Flower SuperGrid
+
+Requires Docker, [uv](https://docs.astral.sh/uv/), and a Flower account with Agent access.
 
 ```bash
-python tests/test_warden.py
-python tests/test_evolve.py
-```
-
-## Run on SuperGrid
-
-```bash
-uv sync
-uv run flwr build
 uv run flwr login supergrid
-uv run flwr chat
-# at the prompt
-/load .
+bash scripts/setup_fleet.sh        # keys, node registration, federation, node image
+docker compose -f fleet/compose.yaml up
 ```
 
-Model credentials come from the SuperNode environment (`FLWR_MODEL_API_KEY`). Never commit keys; `.env` and `keys/` are ignored.
+`fleet/README.md` walks through each step. The four demo nodes use fake data only; each container sees only its own folder and its own key.
 
-## Layout
+Send prompts from the terminal (or use `uv run flwr chat`, then `/load .`):
 
-| File | What it does |
-|---|---|
-| `agent/agent_app.py` | Collaborative AgentApp loop with every tool call routed through the warden |
-| `agent/warden.py` | Rules, checks, signature sharing, rule evolution |
-| `agent/known_good.py` | Normal calls a new rule must never block |
-| `tests/` | Local replays of attacks, sharing, and evolution |
+```bash
+uv run python tools/ask.py --federation @<you>/agent-warden-demo "Ask every node for a one-line status."
+```
+
+### Scripted attack (demo fleets only)
+
+A node simulates an attack only if its operator sets `WARDEN_ALLOW_RED_TEAM=1` on that machine; a prompt alone can't switch it on. The demo fleet sets it.
+
+```bash
+uv run python tools/ask.py --federation @<you>/agent-warden-demo "[SCRIPTED-ATTACK] target=Backend read=/data/backend/.env"
+```
+
+## Rule packs (shaped like agent skills)
+
+```
+agent/rulepacks/<name>/
+  SKILL.md          what it protects and when to enable it, in plain English
+  rules.json        block rules
+  known_good.json   normal actions the pack must never block
+```
+
+Enable with `WARDEN_RULEPACKS` (default `secrets,git-safety,publishing`; `beet` is opt-in). Add your own directory with `WARDEN_RULEPACKS_DIR`.
+
+Skills tell agents the rules. Agent Warden enforces them.
 
 ## Use with Claude Code
 
-Agent Warden can run as a Claude Code `PreToolUse` hook, blocking matching tool
-calls before they execute. See the [hook setup guide](hooks/README.md) for the
-example settings, persistent shared-rule directory, and failure behavior.
+Agent Warden also runs as a Claude Code `PreToolUse` hook that checks each tool call before it executes. It fails open by default so a broken hook never blocks your agent. See [hooks/README.md](hooks/README.md).
 
-## Limits
+## Layout
 
-- Rules are pattern matches, so they can be phrased around. Evolution narrows that gap; it doesn't close it.
-- Warden broadcasts are trusted without signatures. A real deployment would sign them.
-- The model relays broadcasts through Grid tools; sending them directly from code would be more reliable.
+| Path | What it does |
+|---|---|
+| `agent/agent_app.py` | Collaborative AgentApp loop; every tool call goes through the warden |
+| `agent/warden.py` | Checks, rule evolution, local validation |
+| `agent/relay.py` | Rules travel node → coordinator → nodes in code |
+| `agent/rulepacks/` | Rule packs |
+| `agent/redteam.py` | Scripted attack for demo fleets |
+| `hooks/` | Claude Code hook |
+| `fleet/`, `scripts/` | Demo fleet template, setup, one-command demo |
+| `tools/` | `ask.py` (prompts without the chat screen), `measure_audit.py` (replay a private audit, totals only) |
+| `tests/` | Scenario suites |
+
+## Limits and next steps
+
+- Rules are patterns and can be phrased around. Evolution narrows the gap; hard isolation (sandboxes, OS or hardware policy) stays underneath. Agent Warden is the learning layer on top, not a replacement.
+- Shared rules are validated locally but not yet cryptographically signed.
+- Context-dependent actions (production merges, releases) need a human-approval tier.
+- The Claude Code hook uses local rules and packs; syncing rules from a fleet to it isn't built.
+- Next: a held-out evaluation set, signed rules, approval cards on Flower.
+
+Related work at earlier Flower hackathons: [Pollen Mesh](https://github.com/tanveerxz/pollen-mesh) shares hashed threat signatures between organizations without sharing data. Agent Warden applies the same idea to what agents themselves are allowed to do.
 
 Based on the Flower Collaborative AgentApp template (Apache 2.0).
