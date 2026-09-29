@@ -21,8 +21,9 @@ BEET_RULES: list[Rule] = [
         family="permissions",
         tool=SHELL_TOOLS,
         pattern=(
-            r"(?=.*(?:^|[/\\])\.codex[/\\](?:config\.toml|rules[/\\]))"
+            r"\A(?s:(?=.*(?:^|[/\\])\.codex[/\\](?:config\.toml|rules[/\\]))"
             r"(?=.*(?:\brm\b|\bmv\b|\btruncate\b|\bsed\s+-i\b|\bperl\s+-pi\b|>>?|\btee\b))"
+            r")"
         ),
         reason="Prevents shell commands from changing Codex approval settings or deleting prompt rules.",
     ),
@@ -66,7 +67,7 @@ BEET_RULES: list[Rule] = [
         family="git-history",
         tool=SHELL_TOOLS,
         pattern=(
-            r"\bgit\s+push(?=(?:\\.|[^\"\r\n])*"
+            r"\bgit\s+push(?=(?:\\.|[^\"\\\r\n])*"
             r"(?:--force(?!-with-lease)(?:\b|=)|(?<!\S)-f(?!\S)))"
         ),
         reason="Blocks force pushes that can rewrite remote Git history.",
@@ -76,8 +77,8 @@ BEET_RULES: list[Rule] = [
         family="git-history",
         tool=SHELL_TOOLS,
         pattern=(
-            r"\bgit\s+push(?=(?:\\.|[^\"\r\n])*--force-with-lease(?:\b|=))"
-            r"(?=(?:\\.|[^\"\r\n])*[\s:=](?:\\\"|[\"'])?(?:refs/heads/)?"
+            r"\bgit\s+push(?=(?:\\.|[^\"\\\r\n])*--force-with-lease(?:\b|=))"
+            r"(?=(?:\\.|[^\"\\\r\n])*[\s:=](?:\\\"|[\"'])?(?:refs/heads/)?"
             r"(?:main|master|develop|production|release(?:[/_-][\w.-]+)?)"
             r"(?=(?:\\\"|[\s:\"'])))"
         ),
@@ -88,8 +89,8 @@ BEET_RULES: list[Rule] = [
         family="git-history",
         tool=SHELL_TOOLS,
         pattern=(
-            r"\bgit\s+push(?=(?:\\.|[^\"\r\n])*--force-with-lease(?:\b|=))"
-            r"(?!(?:\\.|[^\"\r\n])*(?:codex|feature)/[A-Za-z0-9._/-]+"
+            r"\bgit\s+push(?=(?:\\.|[^\"\\\r\n])*--force-with-lease(?:\b|=))"
+            r"(?!(?:\\.|[^\"\\\r\n])*(?:codex|feature)/[A-Za-z0-9._/-]+"
             r"(?=(?:\\\"|[\s:\"'])))"
         ),
         reason="Allows force-with-lease only on codex/* or feature/* branches.",
@@ -99,7 +100,7 @@ BEET_RULES: list[Rule] = [
         family="production-release",
         tool=SHELL_TOOLS,
         pattern=(
-            r"\bgh\s+pr\s+merge\b(?:\\.|[^\"\r\n])*--base(?:=|\s+)(?:\\\"|[\"'])?"
+            r"\bgh\s+pr\s+merge\b(?:\\.|[^\"\\\r\n])*--base(?:=|\s+)(?:\\\"|[\"'])?"
             r"(?:main|master|production|release(?:[/_-][\w.-]+)?)(?=(?:\\\"|[\s\"']))"
         ),
         reason="Blocks pull-request merges explicitly targeting a production base branch.",
@@ -109,7 +110,7 @@ BEET_RULES: list[Rule] = [
         family="production-release",
         tool=SHELL_TOOLS,
         pattern=(
-            r"\bgit\s+push\b(?:\\.|[^\"\r\n])*[\s:=](?:\\\"|[\"'])?(?:refs/heads/)?"
+            r"\bgit\s+push\b(?:\\.|[^\"\\\r\n])*[\s:=](?:\\\"|[\"'])?(?:refs/heads/)?"
             r"(?:main|master|production|release(?:[/_-][\w.-]+)?)(?=(?:\\\"|[\s:\"']))"
         ),
         reason="Blocks direct Git pushes to production branches.",
@@ -119,8 +120,8 @@ BEET_RULES: list[Rule] = [
         family="production-release",
         tool=SHELL_TOOLS,
         pattern=(
-            r"(?:\bdeploy\b(?:\\.|[^\"\r\n])*(?:--prod(?:uction)?\b|\bprod(?:uction)?\b)|"
-            r"\bvercel\b(?:\\.|[^\"\r\n])*--prod\b)"
+            r"(?:\bdeploy\b(?:\\.|[^\"\\\r\n])*(?:--prod(?:uction)?\b|\bprod(?:uction)?\b)|"
+            r"\bvercel\b(?:\\.|[^\"\\\r\n])*--prod\b)"
         ),
         reason="Blocks commands that deploy the Beet application to production.",
     ),
@@ -156,21 +157,21 @@ BEET_RULES: list[Rule] = [
         id="beet-publishing-fastlane",
         family="publishing",
         tool=SHELL_TOOLS,
-        pattern=r"\bfastlane\s+(?:pilot|deliver)\b(?:\\.|[^\"\r\n])*\bupload\b",
+        pattern=r"\bfastlane\s+(?:pilot|deliver)\b(?:\\.|[^\"\\\r\n])*\bupload\b",
         reason="Blocks Fastlane uploads to TestFlight or the App Store.",
     ),
     Rule(
         id="beet-publishing-altool",
         family="publishing",
         tool=SHELL_TOOLS,
-        pattern=r"\bxcrun\s+altool\b(?:\\.|[^\"\r\n])*--upload-app\b",
+        pattern=r"\bxcrun\s+altool\b(?:\\.|[^\"\\\r\n])*--upload-app\b",
         reason="Blocks direct application uploads through Apple's altool.",
     ),
     Rule(
         id="beet-publishing-app-store",
         family="publishing",
         tool=SHELL_TOOLS,
-        pattern=r"\b(?:app[ -]?store|testflight)\b(?:\\.|[^\"\r\n])*\b(?:submit|submission|upload)\b",
+        pattern=r"\b(?:app[ -]?store|testflight)\b(?:\\.|[^\"\\\r\n])*\b(?:submit|submission|upload)\b",
         reason="Blocks App Store and TestFlight submission commands.",
     ),
     Rule(
@@ -178,9 +179,10 @@ BEET_RULES: list[Rule] = [
         family="database",
         tool=SHELL_TOOLS,
         pattern=(
-            r"(?=(?:\\.|[^\"\r\n])*\bprisma\s+(?:migrate\s+deploy|db\s+push)\b)"
-            r"(?=(?:\\.|[^\"\r\n])*(?:\bprod(?:uction)?\b|PRODUCTION_DATABASE_URL|"
-            r"DATABASE_URL=(?:\\.|[^\s\"'])*prod))"
+            r"\bprisma\s+(?:migrate\s+deploy|db\s+push)\b[^\r\n]{0,400}?"
+            r"(?:\bprod(?:uction)?\b|PRODUCTION_DATABASE_URL|DATABASE_URL=[^\s\"']{0,200}?prod)"
+            r"|(?:\bprod(?:uction)?\b|PRODUCTION_DATABASE_URL|DATABASE_URL=[^\s\"']{0,200}?prod)"
+            r"[^\r\n]{0,400}?\bprisma\s+(?:migrate\s+deploy|db\s+push)\b"
         ),
         reason="Blocks Prisma schema changes against a production database.",
     ),
