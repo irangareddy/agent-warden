@@ -1,0 +1,6 @@
+**
+!pyproject.toml
+!fleet/
+!fleet/node-image/
+!fleet/node-image/Dockerfile
+!fleet/node-image/Dockerfile.dockerignore

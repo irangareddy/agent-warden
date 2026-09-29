@@ -1,0 +1,5 @@
+keys/
+.env
+data/backend/.env
+uv-cache/
+nodes.txt

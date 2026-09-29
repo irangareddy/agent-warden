@@ -1,0 +1,59 @@
+services:
+  ios-agent:
+    image: agent-warden-supernode:warm
+    build:
+      context: ..
+      dockerfile: fleet/node-image/Dockerfile
+    command:
+      - --superlink=fleet-supergrid.flower.ai:443
+      - --auth-supernode-private-key=/keys/supernode-0
+      - --allow-runtime-dependency-installation
+    environment:
+      FLWR_MODEL_API_KEY: ${FLWR_MODEL_API_KEY:?Set FLWR_MODEL_API_KEY in fleet/.env}
+      FLWR_FILESYSTEM_ALLOWED_DIRS: /data/ios
+      WARDEN_NODE_NAME: Beet iOS Agent
+    volumes:
+      - ./keys/supernode-0:/keys/supernode-0:ro
+      - ./data/ios:/data/ios
+
+  backend-agent:
+    image: agent-warden-supernode:warm
+    command:
+      - --superlink=fleet-supergrid.flower.ai:443
+      - --auth-supernode-private-key=/keys/supernode-1
+      - --allow-runtime-dependency-installation
+    environment:
+      FLWR_MODEL_API_KEY: ${FLWR_MODEL_API_KEY:?Set FLWR_MODEL_API_KEY in fleet/.env}
+      FLWR_FILESYSTEM_ALLOWED_DIRS: /data/backend
+      WARDEN_NODE_NAME: Beet Backend Agent
+    volumes:
+      - ./keys/supernode-1:/keys/supernode-1:ro
+      - ./data/backend:/data/backend
+
+  qa-agent:
+    image: agent-warden-supernode:warm
+    command:
+      - --superlink=fleet-supergrid.flower.ai:443
+      - --auth-supernode-private-key=/keys/supernode-2
+      - --allow-runtime-dependency-installation
+    environment:
+      FLWR_MODEL_API_KEY: ${FLWR_MODEL_API_KEY:?Set FLWR_MODEL_API_KEY in fleet/.env}
+      FLWR_FILESYSTEM_ALLOWED_DIRS: /data/qa
+      WARDEN_NODE_NAME: Beet QA Agent
+    volumes:
+      - ./keys/supernode-2:/keys/supernode-2:ro
+      - ./data/qa:/data/qa
+
+  release-agent:
+    image: agent-warden-supernode:warm
+    command:
+      - --superlink=fleet-supergrid.flower.ai:443
+      - --auth-supernode-private-key=/keys/supernode-3
+      - --allow-runtime-dependency-installation
+    environment:
+      FLWR_MODEL_API_KEY: ${FLWR_MODEL_API_KEY:?Set FLWR_MODEL_API_KEY in fleet/.env}
+      FLWR_FILESYSTEM_ALLOWED_DIRS: /data/release
+      WARDEN_NODE_NAME: Beet Release Agent
+    volumes:
+      - ./keys/supernode-3:/keys/supernode-3:ro
+      - ./data/release:/data/release
