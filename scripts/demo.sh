@@ -44,12 +44,14 @@ run_suite 2 'Evolves a rule without false alarms' tests/test_evolve.py
 run_suite 3 'Rejects poisoned rules' tests/test_poison.py
 run_suite 4 'Relays rules between nodes' tests/test_relay.py
 run_suite 5 'Claude Code hook' tests/test_hook.py
-run_suite 6 'Beet rules' tests/test_beet_rules.py
+run_suite 6 'Rule packs load like skills' tests/test_rulepacks.py
+run_suite 7 'Beet fleet rule pack' tests/test_beet_rules.py
+run_suite 8 'Scripted attack across a fleet' tests/test_redteam.py
 
 AUDIT_FILE="$REPO_ROOT/../beet-warden-tool-calls.json"
 if [[ -f "$AUDIT_FILE" && -f "$REPO_ROOT/tools/measure_audit.py" ]]; then
   printf '\n=== Optional audit aggregate ===\n'
-  if audit_output="$("$PYTHON" "$REPO_ROOT/tools/measure_audit.py" "$AUDIT_FILE" 2>&1)"; then
+  if audit_output="$(WARDEN_RULEPACKS=secrets,git-safety,publishing,beet "$PYTHON" "$REPO_ROOT/tools/measure_audit.py" "$AUDIT_FILE" 2>&1)"; then
     aggregates="$(printf '%s\n' "$audit_output" | awk '/^(routine|risky|variant)[[:space:]]/')"
     if [[ -n "$aggregates" ]]; then
       printf '%s\n' "$aggregates"
