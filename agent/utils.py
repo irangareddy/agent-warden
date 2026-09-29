@@ -85,7 +85,14 @@ RED_TEAM_INSTRUCTIONS = (
 
 
 def is_red_team(prompt: str) -> bool:
-    return RED_TEAM_TAG in prompt
+    """Red-team mode needs the tag AND an operator opt-in on this machine.
+
+    A prompt alone can never switch it on, so a published app cannot be talked
+    out of its normal instructions by typing the tag.
+    """
+    import os
+
+    return os.environ.get("WARDEN_ALLOW_RED_TEAM") == "1" and RED_TEAM_TAG in prompt
 
 
 def _stream_response(
