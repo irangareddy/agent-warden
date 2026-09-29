@@ -70,6 +70,8 @@ docker compose -f fleet/compose.yaml up
 uv run python tools/ask.py --federation @<you>/wagent-demo "Ask every node for a one-line status."
 ```
 
+Choose the agents' model with `WARDEN_MODEL` (default `openai/gpt-5.6-terra`). Flower's docs also name `openai/gpt-5.6-sol` and `openai/gpt-5-nano`. `flwrlabs/endeavor-1.0` (Flower Endeavor) is supported for evaluation: Wagent calls it without streaming, as Flower's own Endeavor agent does. In our runs on September 29, 2026, Endeavor returned provider errors, so the demo uses the default.
+
 Each of the four demo nodes sees only its own folder and its own key, and uses fake data. [fleet/README.md](fleet/README.md) walks through each step.
 
 To watch one agent's catch protect the others, send the scripted attack. It runs only on machines whose operator set `WARDEN_ALLOW_RED_TEAM=1`, so a prompt alone can't turn it on:

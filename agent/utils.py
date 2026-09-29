@@ -106,17 +106,35 @@ def _stream_response(
     tools: list[dict[str, Any]],
 ) -> tuple[Any, dict[str, Any]]:
     """Stream one model turn and return its completed response and event."""
+    instructions = (
+        RED_TEAM_INSTRUCTIONS
+        if is_red_team(agent.prompt)
+        else AGENT_COLLABORATION_INSTRUCTIONS + INSTRUCTIONS
+    )
+    if MODEL.startswith("flwrlabs/endeavor"):
+        # Endeavor's tool-calling turns end early when streamed, so Flower's
+        # own Endeavor agent calls it without streaming. Do the same, then
+        # emit the text as one delta so chat clients still show it.
+        response = client.responses.create(
+            model=MODEL,
+            input=input_items,
+            instructions=instructions,
+            tools=tools,
+            tool_choice="auto",
+            stream=False,
+        )
+        text = getattr(response, "output_text", "") or ""
+        if text:
+            agent.events.emit({"type": "response.output_text.delta", "delta": text})
+        return response, {"type": "response.completed", "response": response.to_dict()}
+
     completed_response = None
     completed_event = None
     stream = client.responses.create(
         model=MODEL,
         reasoning={"effort": "medium"},
         input=input_items,
-        instructions=(
-            RED_TEAM_INSTRUCTIONS
-            if is_red_team(agent.prompt)
-            else AGENT_COLLABORATION_INSTRUCTIONS + INSTRUCTIONS
-        ),
+        instructions=instructions,
         tools=tools,
         stream=True,
     )
