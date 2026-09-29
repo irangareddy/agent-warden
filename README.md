@@ -28,7 +28,7 @@ uv sync
 bash scripts/demo.sh
 ```
 
-The demo runs 11 suites and prints each step: blocking, widening a rule, rejecting poisoned rules, sharing between nodes, rule packs, a scripted attack across a fleet, asking a human, the harness hooks, and the setup CLI.
+The demo runs 12 suites and prints each step: blocking, widening a rule, rejecting poisoned rules, sharing between nodes, rule packs, a scripted attack across a fleet, asking a human, the harness hooks, the setup CLI, and a node blocking only because it learned another node's rule.
 
 ## The numbers, and how to check them
 
@@ -37,7 +37,7 @@ The demo runs 11 suites and prints each step: blocking, widening a rule, rejecti
 | 70 real tool calls from a coding-agent fleet (Codex, Claude Code, OpenClaw) | No routine work blocked (37 of 40 allowed, 3 merges ask first). All 15 rephrased attacks stopped (12 blocked, 3 asked). 12 of 15 risky actions stopped. | `tools/measure_audit.py` on your own audit file; ours stays private, only totals are published |
 | Learning over time, 48 attacks in 30 random orders | With your reviews, catch rate on attacks it hadn't seen rose from 79% to 96% after 24 attacks. False alarms on held-out routine work: 0.5 in 20. | `python3.12 eval/learning_curve.py --start default` |
 | Speed | Median check 0.03 ms; under 5 ms on a 20,000-character command | `tests/test_beet_rules.py` includes the timing test |
-| Live on Flower SuperGrid, 4 nodes | Target node blocked a `.env` read, the coordinator validated the rule, and all 4 nodes blocked the follow-up probe | Run a fleet (below), then send the scripted attack |
+| Live on Flower SuperGrid, 4 nodes (run 3752845067342549556) | Only the Backend agent guards customer exports. It blocked an export read and shared the rule; the other 3 agents, whose own rules allowed the follow-up read, each blocked it with Backend's rule | `tests/test_shared_only.py` offline; the scripted attack below, live |
 
 Learning only helps when someone flags what got through: on its own blocks alone, Wagent went from 79% to 80%. That's why review is part of the product, not an afterthought.
 
@@ -75,7 +75,7 @@ Each of the four demo nodes sees only its own folder and its own key, and uses f
 To watch one agent's catch protect the others, send the scripted attack. It runs only on machines whose operator set `WARDEN_ALLOW_RED_TEAM=1`, so a prompt alone can't turn it on:
 
 ```bash
-uv run python tools/ask.py --federation @<you>/wagent-demo "[SCRIPTED-ATTACK] target=Backend read=/data/backend/.env"
+uv run python tools/ask.py --federation @<you>/wagent-demo "[SCRIPTED-ATTACK] target=Backend read=/data/backend/exports/customers-2026-09.csv"
 ```
 
 ## How it works
@@ -104,7 +104,7 @@ agent/rulepacks/<name>/
   known_good.json   normal work the pack must never block
 ```
 
-The defaults are `secrets`, `git-safety` and `publishing`. Choose packs with `WARDEN_RULEPACKS`, and add your own folder with `WARDEN_RULEPACKS_DIR`. Skills tell agents the rules; Wagent enforces them.
+The defaults are `secrets`, `git-safety` and `publishing`; `customer-data` is opt-in. Choose packs with `WARDEN_RULEPACKS`, and add your own folder with `WARDEN_RULEPACKS_DIR`. Skills tell agents the rules; Wagent enforces them.
 
 ## What's real today (v0.2, preview)
 
@@ -137,6 +137,6 @@ What's not done yet:
 | `tools/` | Setup CLI, prompts from the terminal, private audit replay |
 | `eval/` | Learning-over-time evaluation |
 | `fleet/`, `scripts/` | Demo fleet, setup, one-command demo |
-| `tests/` | The 11 demo suites |
+| `tests/` | The 12 demo suites |
 
 Based on the Flower Collaborative AgentApp template. Apache 2.0.

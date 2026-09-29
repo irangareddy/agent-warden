@@ -26,6 +26,7 @@ services:
       FLWR_MODEL_API_KEY: ${FLWR_MODEL_API_KEY:?Set FLWR_MODEL_API_KEY in fleet/.env}
       FLWR_FILESYSTEM_ALLOWED_DIRS: /data/backend
       WARDEN_NODE_NAME: Beet Backend Agent
+      WARDEN_RULEPACKS: secrets,git-safety,publishing,customer-data   # only Backend guards customer exports
     volumes:
       - ./keys/supernode-1:/keys/supernode-1:ro
       - ./data/backend:/data/backend

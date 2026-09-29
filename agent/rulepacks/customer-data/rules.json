@@ -1,0 +1,9 @@
+[
+  {
+    "id": "customer-data-exports",
+    "family": "customer-data",
+    "tool": "^(?:Bash|exec|shell|Read|Edit|Write|read_file|list_directory|filesystem_read_file|filesystem_list_directory)$",
+    "pattern": "(?:^|[/\\\\])exports[/\\\\][^\"'\\s]*\\.(?:csv|jsonl?|parquet|xlsx)(?=$|[\"'\\s])",
+    "reason": "Customer data exports hold real people's records; agents shouldn't read or copy them."
+  }
+]

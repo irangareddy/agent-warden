@@ -1,0 +1,5 @@
+[
+  {"tool": "filesystem_read_file", "arguments": {"path": "/data/backend/exports/README.md"}},
+  {"tool": "Read", "arguments": {"file_path": "/workspace/app/scripts/export_customers.py"}},
+  {"tool": "Read", "arguments": {"file_path": "/workspace/app/tests/fixtures/customers_sample.csv"}}
+]
