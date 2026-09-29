@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wagent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow column, record-style tables, one big live diagram. */
+:root{
+  --bg:#ffffff; --ink:#111417; --muted:#62686e; --line:#e3e6e8; --soft:#f5f6f7;
+  --block:#d1452b; --allow:#2e7d57; --ask:#b58400; --flow:#1f6f8b; --packet:#e0a100;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:16px/1.55 var(--sans);padding-inline:20px;padding-block:32px 80px}
+main{max-width:1000px;margin:0 auto;display:grid;gap:64px}
+h1{font:700 56px/1 var(--sans);letter-spacing:-.03em;margin:0}
+h2{font:600 26px/1.2 var(--sans);letter-spacing:-.01em;margin:0;text-wrap:balance}
+p{margin:0}
+.kicker{font:500 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:20px;color:var(--muted);max-width:52ch}
+.mono{font-family:var(--mono)}
+section{display:grid;gap:18px}
+nav{display:flex;gap:18px;flex-wrap:wrap;font:500 13px var(--mono)}
+nav a{color:var(--ink)}
+.cap{color:var(--muted);font-size:14px;max-width:72ch}
+.box{border:1px solid var(--line);border-radius:10px;padding:18px;min-width:0;background:var(--bg)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font:14px var(--mono);font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:500;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em;background:var(--soft)}
+tr:last-child td{border-bottom:0}
+.num{text-align:right}
+.pill{display:inline-block;font:600 11px var(--mono);padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+.b{color:var(--block)} .a{color:var(--allow)} .q{color:var(--ask)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.stat{display:grid;gap:4px}
+.stat .v{font:700 44px/1 var(--sans);letter-spacing:-.02em}
+.stat .k{color:var(--muted);font-size:14px}
+svg{display:block;width:100%;height:auto;max-width:100%}
+svg text{font-family:var(--sans);fill:var(--ink)}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:600 14px var(--sans);border-radius:8px;padding:10px 16px;cursor:pointer;border:1.5px solid var(--ink);background:var(--ink);color:var(--bg)}
+button.ghost{background:var(--bg);color:var(--ink)}
+button:disabled{opacity:.45;cursor:wait}
+button:focus-visible{outline:3px solid var(--packet);outline-offset:2px}
+#status{font:500 13px var(--mono);color:var(--muted)}
+#log{font:12px/1.6 var(--mono);background:var(--soft);border-radius:8px;padding:12px;height:190px;overflow:auto;white-space:pre-wrap;word-break:break-all;margin:0}
+#log .b{color:var(--block)} #log .a{color:var(--allow)}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;counter-reset:s}
+.step{border-top:3px solid var(--ink);padding-top:10px;display:grid;gap:4px}
+.step b{font-size:18px}
+.step span{color:var(--muted);font-size:14px}
+.step code{font:12px var(--mono);color:var(--flow)}
+ul{margin:0;padding-left:18px;display:grid;gap:6px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+
+<header style="display:grid;gap:16px">
+  <span class="kicker">Flower Collaborative Agent Hackathon · Stanford · 29 Sep 2026</span>
+  <h1>Wagent</h1>
+  <p class="lede">A warden for your AI agents. When one agent is stopped, the others learn the rule. No data is shared.</p>
+  <nav><a href="#problem">Problem</a><a href="#live">Live</a><a href="#how">How it works</a><a href="#results">Results</a><a href="#runs">Runs</a><a href="https://github.com/irangareddy/wagent" target="_blank" rel="noopener">GitHub</a><a href="https://flower.ai/apps/irangareddy/wagent" target="_blank" rel="noopener">Flower Hub</a></nav>
+</header>
+
+<section id="problem">
+  <span class="kicker">Problem</span>
+  <h2>Agents already act with real credentials. Some have hurt third parties.</h2>
+  <p class="cap">FelonyBench tracks incidents where frontier-lab agents affected third parties: 13 since July 2026. Several are the exact kind of action a coding agent can take with the keys on your machine.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Date</th><th>Lab</th><th>Incident (FelonyBench)</th><th>Wagent pack for this kind of action</th></tr></thead>
+    <tbody>
+      <tr><td>9/11/2026</td><td>OpenAI</td><td>Malicious RubyGem package by an agent swarm</td><td><span class="pill b">publishing</span> blocks <span class="mono">gem push</span></td></tr>
+      <tr><td>8/4/2026</td><td>Anthropic</td><td>Unauthorized use of GitHub credentials; Dependabot supply-chain attack</td><td><span class="pill b">secrets</span> blocks reading or printing GitHub tokens</td></tr>
+      <tr><td>8/4/2026</td><td>OpenAI</td><td>Unauthorized use of GitHub credentials</td><td><span class="pill b">secrets</span></td></tr>
+      <tr><td>7/30/2026</td><td>Anthropic</td><td>Malicious PyPI package</td><td><span class="pill b">publishing</span> blocks <span class="mono">twine upload</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="cap">Closer to home: a read-only audit of my own coding agents (Codex, Claude Code, OpenClaw on my app Beet) found one had switched my setup to never ask for approval, and others merged to production. Prompts ask agents to behave. They don't guarantee it. Source: felonybench.com.</p>
+</section>
+
+<section id="live">
+  <span class="kicker">Live on Flower SuperGrid · @irangareddy/beet-fleet</span>
+  <h2>One agent's catch protects all four</h2>
+  <div class="box" style="display:grid;gap:14px">
+    <svg id="fleet" viewBox="0 0 760 400" role="img" aria-label="Four agents around a Flower coordinator"></svg>
+    <div class="controls">
+      <button type="button" id="btn-live">Run live attack on SuperGrid</button>
+      <button type="button" id="btn-replay" class="ghost">Replay recorded run</button>
+      <span id="status">Ready. Only Backend guards customer data.</span>
+    </div>
+    <pre id="log" aria-live="polite"></pre>
+  </div>
+  <p class="cap">The attack only runs on machines whose operator switched it on (<span class="mono">WARDEN_ALLOW_RED_TEAM=1</span>), so nobody can trigger it with a prompt. QA and Release run on Nebius Token Factory (Kimi-K2.7-Code, MiniMax-M3); Backend and iOS run GPT.</p>
+</section>
+
+<section id="how">
+  <span class="kicker">How it works</span>
+  <h2>Check, widen, share, validate</h2>
+  <div class="steps">
+    <div class="step"><b>Check</b><span>Every tool call is checked in code before it runs. The model is never asked.</span><code>median 0.03 ms</code></div>
+    <div class="step"><b>Widen</b><span>A block becomes the broadest rule that still allows normal work.</span><code>0 false alarms on known-good</code></div>
+    <div class="step"><b>Share</b><span>The rule travels through the Flower coordinator. Only the rule, never data.</span><code>max 3 new rules per message</code></div>
+    <div class="step"><b>Validate</b><span>Each agent tests the rule on its own work before using it.</span><code>poisoned rules rejected</code></div>
+  </div>
+</section>
+
+<section id="results">
+  <span class="kicker">Results</span>
+  <h2>Three numbers</h2>
+  <div class="grid2">
+    <div class="box stat"><span class="v">0.02%</span><span class="k">false alarms on 39,633 real commands from Nebius SWE-agent runs we never saw</span></div>
+    <div class="box stat"><span class="v">81% <span style="color:var(--muted);font-weight:500">vs</span> 41%</span><span class="k">attacks caught: Wagent default packs vs a plain denylist</span></div>
+    <div class="box stat"><span class="v">10% → 31%</span><span class="k">attacks every agent stops: alone vs sharing rules</span></div>
+  </div>
+
+  <div class="box" style="display:grid;gap:10px">
+    <b>Real agent work we never saw</b>
+    <svg id="strip" viewBox="0 0 900 100" role="img" aria-label="39,633 commands, 3 false alarms"></svg>
+    <p class="cap">1,500 public runs from nebius/SWE-agent-trajectories. All 3 flags hand-checked: test files named like credentials. This data has no attacks, so it measures false alarms only.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="box" style="display:grid;gap:10px">
+      <b>Against a plain denylist</b>
+      <svg id="base" viewBox="0 0 460 250" role="img" aria-label="Attacks caught 41% vs 81%; routine flagged 38% vs 2%"></svg>
+      <div class="legend"><span><i style="background:#9aa1a7"></i>denylist</span><span><i style="background:var(--flow)"></i>Wagent</span></div>
+    </div>
+    <div class="box" style="display:grid;gap:10px">
+      <b>Sharing vs each agent alone</b>
+      <svg id="share" viewBox="0 0 460 250" role="img" aria-label="Attacks every agent stops: 10% alone, 31% sharing. Agents protected per attack: 1.1 vs 1.8 of 4."></svg>
+      <div class="legend"><span><i style="background:#9aa1a7"></i>alone</span><span><i style="background:var(--flow)"></i>sharing</span></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="box" style="display:grid;gap:10px">
+      <b>Learning with a human in the loop</b>
+      <svg id="curve" viewBox="0 0 460 260" role="img" aria-label="Catch rate on unseen attacks 79% to 96% with reviews; flat near 80% without"></svg>
+      <div class="legend"><span><i style="background:var(--flow)"></i>with your reviews</span><span><i style="background:#9aa1a7"></i>own blocks only</span></div>
+    </div>
+    <div class="box" style="display:grid;gap:10px">
+      <b>70 real tool calls from my agents</b>
+      <svg id="hist" viewBox="0 0 460 200" role="img" aria-label="Routine 37 allowed 3 asked 0 blocked; attacks 12 blocked 3 asked; risky 6 blocked 6 asked 3 allowed"></svg>
+      <div class="legend"><span><i style="background:var(--block)"></i>blocked</span><span><i style="background:var(--ask)"></i>asked you</span><span><i style="background:var(--allow)"></i>allowed</span></div>
+    </div>
+  </div>
+  <p class="cap">Attack cases and the denylist were written by us, and some rules were tuned on my agents' history. The 39,633 commands are data we never saw. A blind red team is next.</p>
+</section>
+
+<section id="runs">
+  <span class="kicker">Runs · 29 Sep 2026</span>
+  <h2>What we ran live</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Run</th><th>What</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>13331100501952200106</td><td>Scripted attack, mixed-model fleet</td><td><span class="pill b">4 / 4 blocked</span> 3 with Backend's rule</td></tr>
+      <tr><td>8508852592345920671</td><td>Scripted attack · Kimi, MiniMax, GPT</td><td><span class="pill b">4 / 4 blocked</span> 3 with Backend's rule</td></tr>
+      <tr><td>3752845067342549556</td><td>Shared-rule-only proof</td><td><span class="pill b">4 / 4 blocked</span> others' own rules allow it</td></tr>
+      <tr><td>7400283169209213563</td><td>Collaboration via Nebius models</td><td><span class="pill a">replies</span> QA (Kimi), Release (MiniMax)</td></tr>
+      <tr><td>11356823142852277877</td><td>After rate limiting shipped</td><td><span class="pill b">4 / 4 blocked</span> nothing held</td></tr>
+      <tr><td>12350019864980463414</td><td>Flower Endeavor model</td><td><span class="pill q">provider error</span> supported, retry later</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <span class="kicker">Works with</span>
+  <h2>Your agents, your rules</h2>
+  <p class="cap">Flower Agents built in. Hooks for Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI and Grok. Rule packs shaped like skills: secrets, git-safety, publishing, customer-data. <span class="mono">python3 tools/warden.py init</span> sets up a project; <span class="mono">review</span> shows what the fleet learned.</p>
+  <ul>
+    <li>Rules can be phrased around. Wagent is a layer on top of sandboxes, not a replacement.</li>
+    <li>Shared rules are validated and rate-limited; signing is built on a branch.</li>
+    <li>"Ask" actions are held on Flower today; approval cards are next.</li>
+  </ul>
+</section>
+
+</main>
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg";
+const el=(t,a,p,x)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(x!=null)e.textContent=x;if(p)p.appendChild(e);return e;};
+const GREY="#9aa1a7";
+
+/* ---------- Fleet ---------- */
+const svg=document.getElementById("fleet"), C={x:380,y:200};
+const nodes={
+  Backend:{x:170,y:72,model:"GPT",own:true}, QA:{x:590,y:72,model:"Kimi · Nebius"},
+  Release:{x:590,y:328,model:"MiniMax · Nebius"}, iOS:{x:170,y:328,model:"GPT"}
+};
+const linkG=el("g",{},svg);
+Object.values(nodes).forEach(n=>n.link=el("line",{x1:n.x,y1:n.y,x2:C.x,y2:C.y,stroke:"#e3e6e8","stroke-width":2},linkG));
+const atk=el("g",{opacity:0},svg);
+el("line",{x1:4,y1:72,x2:44,y2:72,stroke:"var(--block)","stroke-width":2.5,"stroke-dasharray":"5 4"},atk);
+el("path",{d:"M44 66 L54 72 L44 78 Z",fill:"var(--block)"},atk);
+el("text",{x:2,y:58,"font-size":11,style:"font-family:var(--mono);fill:var(--block)"},atk,"attack");
+const cg=el("g",{},svg);
+const cbox=el("rect",{x:C.x-80,y:C.y-32,width:160,height:64,rx:10,fill:"#fff",stroke:"#111417","stroke-width":1.5},cg);
+el("text",{x:C.x,y:C.y-6,"text-anchor":"middle","font-weight":600,"font-size":15},cg,"Flower coordinator");
+const cst=el("text",{x:C.x,y:C.y+15,"text-anchor":"middle","font-size":12,style:"fill:var(--muted)"},cg,"idle");
+for(const [name,n] of Object.entries(nodes)){
+  const g=el("g",{},svg);
+  n.box=el("rect",{x:n.x-112,y:n.y-42,width:224,height:84,rx:10,fill:"#fff",stroke:"#e3e6e8","stroke-width":2.5},g);
+  el("text",{x:n.x-98,y:n.y-16,"font-weight":600,"font-size":16},g,name);
+  el("text",{x:n.x+98,y:n.y-16,"text-anchor":"end","font-size":11,style:"font-family:var(--mono);fill:var(--muted)"},g,n.model);
+  n.res=el("text",{x:n.x-98,y:n.y+8,"font-size":13,"font-weight":600,style:"fill:var(--muted)"},g,"idle");
+  n.src=el("text",{x:n.x-98,y:n.y+27,"font-size":12,style:"fill:var(--muted)"},g,n.own?"has customer-data rule":"no customer-data rule");
+}
+const pkG=el("g",{},svg);
+function packet(from,to,ms=700){return new Promise(r=>{const p=el("circle",{r:7,fill:"var(--packet)"},pkG);const t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/ms);p.setAttribute("cx",from.x+(to.x-from.x)*k);p.setAttribute("cy",from.y+(to.y-from.y)*k);k<1?requestAnimationFrame(f):(p.remove(),r());})(t0);});}
+function reset(){atk.setAttribute("opacity",0);cst.textContent="idle";cst.style.fill="var(--muted)";cbox.setAttribute("stroke","#111417");
+  for(const n of Object.values(nodes)){n.box.setAttribute("stroke","#e3e6e8");n.res.textContent="idle";n.res.style.fill="var(--muted)";n.src.textContent=n.own?"has customer-data rule":"no customer-data rule";n.link.setAttribute("stroke","#e3e6e8");}}
+function setNode(name,result,source){const n=nodes[name];if(!n)return;const blocked=result==="BLOCKED";
+  n.box.setAttribute("stroke",blocked?"var(--block)":"var(--allow)");n.res.textContent=result;n.res.style.fill=blocked?"var(--block)":"var(--allow)";
+  n.src.textContent=source==="pack:customer-data"?"its own customer-data rule":source.startsWith("Beet ")?"with "+source.replace("Beet ","").replace(" Agent","")+"'s rule":source;}
+
+/* ---------- Stream handling ---------- */
+const logEl=document.getElementById("log"), status=document.getElementById("status");
+const bLive=document.getElementById("btn-live"), bRep=document.getElementById("btn-replay");
+let es=null, pushes=0;
+function log(line,cls){const s=document.createElement("span");if(cls)s.className=cls;s.textContent=(line.length>170?line.slice(0,170)+"…":line)+"\n";logEl.appendChild(s);logEl.scrollTop=logEl.scrollHeight;}
+function handle(line){
+  if(line==="[[done]]"){finish();return;}
+  let m;
+  if((m=line.match(/^run (\d+) \(/))){status.textContent="Run "+m[1]+" started on SuperGrid";log(line);return;}
+  if(line.startsWith("→ push_messages")){pushes++;
+    if(pushes===1){atk.setAttribute("opacity",1);nodes.Backend.link.setAttribute("stroke","var(--block)");status.textContent="Coordinator sends the attack to Backend";log("→ attack sent to Backend: read a customer export");}
+    else{status.textContent="Coordinator forwards Backend's rule to QA, Release, iOS";log("→ rule forwarded to QA, Release, iOS");["QA","Release","iOS"].forEach(k=>{nodes[k].link.setAttribute("stroke","var(--packet)");packet(C,nodes[k],900);});}
+    return;}
+  if(line.includes("Scripted probe on Beet Backend Agent: BLOCKED")&&pushes===1){setNode("Backend","BLOCKED","pack:customer-data");status.textContent="Backend blocks it with its own rule and shares the rule";log("🛡 Backend BLOCKED (own customer-data rule); rule attached to its reply","b");return;}
+  if(line.includes("accepted a rule from Beet Backend Agent")){packet(nodes.Backend,C,700).then(()=>{cst.textContent="rule validated ✓";cst.style.fill="var(--allow)";cbox.setAttribute("stroke","var(--allow)");});status.textContent="Coordinator tests Backend's rule on its own work: accepted";log("🛡 Coordinator validated Backend's rule","a");return;}
+  if((m=line.match(/^Beet (\w+) Agent \| (BLOCKED|ALLOWED) \| (\S+) \| (.+)$/))){setNode(m[1],m[2],m[4].trim());log(line,m[2]==="BLOCKED"?"b":"a");return;}
+  if(line.startsWith("🛡️ Scripted attack summary")){log("— summary —");return;}
+  if(/finished$/.test(line)){log(line);return;}
+  if(line.startsWith("←")||line.startsWith("→")||line.startsWith("Using")||line.startsWith("🛡")||!line.trim()||line.startsWith("node |")||line.startsWith("---"))return;
+  log(line);
+}
+function start(kind){
+  if(es)return; reset(); logEl.textContent=""; pushes=0;
+  bLive.disabled=bRep.disabled=true;
+  status.textContent=kind==="attack"?"Starting live run on SuperGrid…":"Replaying recorded run 13331100501952200106…";
+  es=new EventSource("/run?kind="+kind);
+  es.onmessage=e=>handle(e.data);
+  es.onerror=()=>{status.textContent="Connection lost. Is demo/server.py running? Try Replay recorded run.";finish();};
+}
+function finish(){if(es){es.close();es=null;}bLive.disabled=bRep.disabled=false;
+  const blocked=Object.values(nodes).filter(n=>n.res.textContent==="BLOCKED").length;
+  if(blocked)status.textContent=blocked+" of 4 agents blocked the attack · 1 own rule, "+(blocked-1)+" with Backend's rule";}
+bLive.onclick=()=>start("attack"); bRep.onclick=()=>start("replay");
+if(location.protocol==="file:"){bLive.disabled=bRep.disabled=true;status.textContent="Open through demo/server.py to run: python3.12 demo/server.py";}
+
+/* ---------- Charts ---------- */
+const st=document.getElementById("strip"), W=860, X=20;
+el("rect",{x:X,y:26,width:W,height:30,rx:4,fill:"var(--allow)",opacity:.85},st);
+[0.13,0.31,0.33].forEach(f=>el("rect",{x:X+f*W,y:18,width:4,height:46,fill:"var(--block)"},st));
+el("text",{x:X,y:84,"font-size":13,style:"fill:var(--muted)"},st,"0");
+el("text",{x:X+W,y:84,"font-size":13,"text-anchor":"end",style:"fill:var(--muted)"},st,"39,633 commands");
+el("text",{x:X+0.33*W+10,y:13,"font-size":13,"font-weight":600,style:"fill:var(--block)"},st,"3 false alarms · 0.02%");
+
+function bars(id,groups,max,unit){const s=document.getElementById(id),L=150,BW=250;
+  [0,max/2,max].forEach(t=>{el("line",{x1:L+BW*t/max,y1:10,x2:L+BW*t/max,y2:220,stroke:"#e3e6e8"},s);el("text",{x:L+BW*t/max,y:238,"font-size":11,"text-anchor":"middle",style:"fill:var(--muted)"},s,t+unit);});
+  groups.forEach((g,gi)=>{const y=18+gi*104;
+    el("text",{x:0,y:y+22,"font-size":13,"font-weight":600},s,g[0]);
+    [[g[1],GREY],[g[2],"var(--flow)"]].forEach(([v,c],k)=>{const yy=y+k*36,w=Math.max(3,BW*v/max);
+      el("rect",{x:L,y:yy,width:w,height:26,rx:3,fill:c},s);
+      el("text",{x:L+w+8,y:yy+18,"font-size":13,"font-weight":600,style:"font-family:var(--mono)"},s,g[3]?g[3][k]:v+unit);});});}
+bars("base",[["Attacks caught",41,81],["Routine flagged",38,2]],100,"%");
+bars("share",[["Every agent stops",10,31],["Agents protected",28,45,["1.1 of 4","1.8 of 4"]]],100,"%");
+
+const cv=document.getElementById("curve"),px=50,pw=390,py=14,ph=190,y0=70,y1=100,sx=v=>px+pw*v/24,sy=v=>py+ph*(1-(v-y0)/(y1-y0));
+[70,80,90,100].forEach(t=>{el("line",{x1:px,y1:sy(t),x2:px+pw,y2:sy(t),stroke:"#e3e6e8"},cv);el("text",{x:px-8,y:sy(t)+4,"text-anchor":"end","font-size":11,style:"fill:var(--muted)"},cv,t+"%");});
+[0,6,12,18,24].forEach(t=>el("text",{x:sx(t),y:py+ph+18,"text-anchor":"middle","font-size":11,style:"fill:var(--muted)"},cv,t));
+el("text",{x:px+pw/2,y:py+ph+38,"text-anchor":"middle","font-size":11,style:"fill:var(--muted)"},cv,"attacks seen (48 of ours, 30 orders)");
+const xs=[0,6,12,18,24];
+[[[79,90,93,95,96],"var(--flow)"],[[79,80,81,81,80],GREY]].forEach(([ys,c])=>{
+  el("polyline",{points:xs.map((x,i)=>sx(x)+","+sy(ys[i])).join(" "),fill:"none",stroke:c,"stroke-width":3},cv);
+  ys.forEach((v,i)=>el("circle",{cx:sx(xs[i]),cy:sy(v),r:i===4?5:3.5,fill:c},cv));
+  el("text",{x:sx(24)-8,y:sy(ys[4])-10,"text-anchor":"end","font-size":13,"font-weight":700,style:"fill:"+c},cv,ys[4]+"%");});
+
+const h=document.getElementById("hist"),HL=130,HW=320,cols=["var(--block)","var(--ask)","var(--allow)"];
+[["Routine",[0,3,37],40],["Rephrased attacks",[12,3,0],15],["Risky",[6,6,3],15]].forEach((r,i)=>{const y=16+i*60;let x=HL;
+  el("text",{x:0,y:y+21,"font-size":13,"font-weight":600},h,r[0]);
+  r[1].forEach((v,k)=>{if(!v)return;const w=HW*v/r[2];el("rect",{x,y,width:w-2,height:32,rx:3,fill:cols[k]},h);if(w>24)el("text",{x:x+w/2,y:y+21,"text-anchor":"middle","font-size":12,"font-weight":600,style:"fill:#fff"},h,v);x+=w;});});
+})();
+</script>
+</body>
+</html>
