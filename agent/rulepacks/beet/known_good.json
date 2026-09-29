@@ -1,0 +1,5 @@
+[
+  {"tool": "Read", "arguments": {"file_path": "/Users/developer/Beet/Sources/EventsView.swift"}},
+  {"tool": "apply_patch", "arguments": {"patch": "*** Begin Patch\n*** Update File: /Users/dev/example-repo/config.toml\n*** End Patch"}},
+  {"tool": "exec", "arguments": {"command": "python3 -c 'from pathlib import Path; Path(\"/Users/dev/example-repo/config.toml\").write_text(\"safe\")'"}}
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "id": "beet-production-pr-merge",
+    "family": "production-release",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\bgh\\s+pr\\s+merge\\b(?:\\\\.|[^\\\"\\\\\\r\\n])*--base(?:=|\\s+)(?:\\\\\\\"|[\\\"'])?(?:main|master|production|release(?:[/_-][\\w.-]+)?)(?=(?:\\\\\\\"|[\\s\\\"']))",
+    "reason": "Blocks pull-request merges explicitly targeting a production base branch."
+  },
+  {
+    "id": "beet-production-git-push",
+    "family": "production-release",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\bgit\\s+push\\b(?:\\\\.|[^\\\"\\\\\\r\\n])*[\\s:=](?:\\\\\\\"|[\\\"'])?(?:refs/heads/)?(?:main|master|production|release(?:[/_-][\\w.-]+)?)(?=(?:\\\\\\\"|[\\s:\\\"']))",
+    "reason": "Blocks direct Git pushes to production branches."
+  },
+  {
+    "id": "beet-production-deploy",
+    "family": "production-release",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "(?:\\bdeploy\\b(?:\\\\.|[^\\\"\\\\\\r\\n])*(?:--prod(?:uction)?\\b|\\bprod(?:uction)?\\b)|\\bvercel\\b(?:\\\\.|[^\\\"\\\\\\r\\n])*--prod\\b)",
+    "reason": "Blocks commands that deploy an application to production."
+  },
+  {
+    "id": "beet-publishing-npm",
+    "family": "publishing",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\bnpm\\s+publish\\b",
+    "reason": "Blocks publishing a package to the npm registry."
+  },
+  {
+    "id": "beet-publishing-fastlane",
+    "family": "publishing",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\bfastlane\\s+(?:pilot|deliver)\\b(?:\\\\.|[^\\\"\\\\\\r\\n])*\\bupload\\b",
+    "reason": "Blocks Fastlane uploads to TestFlight or the App Store."
+  },
+  {
+    "id": "beet-publishing-altool",
+    "family": "publishing",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\bxcrun\\s+altool\\b(?:\\\\.|[^\\\"\\\\\\r\\n])*--upload-app\\b",
+    "reason": "Blocks direct application uploads through Apple's altool."
+  },
+  {
+    "id": "beet-publishing-app-store",
+    "family": "publishing",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\b(?:app[ -]?store|testflight)\\b(?:\\\\.|[^\\\"\\\\\\r\\n])*\\b(?:submit|submission|upload)\\b",
+    "reason": "Blocks App Store and TestFlight submission commands."
+  },
+  {
+    "id": "beet-database-production",
+    "family": "database",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\bprisma\\s+(?:migrate\\s+deploy|db\\s+push)\\b[^\\r\\n]{0,400}?(?:\\bprod(?:uction)?\\b|PRODUCTION_DATABASE_URL|DATABASE_URL=[^\\s\\\"']{0,200}?prod)|(?:\\bprod(?:uction)?\\b|PRODUCTION_DATABASE_URL|DATABASE_URL=[^\\s\\\"']{0,200}?prod)[^\\r\\n]{0,400}?\\bprisma\\s+(?:migrate\\s+deploy|db\\s+push)\\b",
+    "reason": "Blocks Prisma schema changes against a production database."
+  }
+]

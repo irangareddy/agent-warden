@@ -1,0 +1,37 @@
+[
+  {
+    "id": "beet-git-force-push",
+    "family": "git-history",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\bgit(?:\\s+-C\\s+[^\\s]+)?\\s+push\\b[^\\r\\n]*(?:--force(?!-with-lease)(?:\\b|=)|(?<!\\S)-f(?!\\S)|(?<!\\S)\\+(?:HEAD(?=:)|refs/heads/)[^\\s;&|\\\"']*)",
+    "reason": "Blocks force pushes that can rewrite remote Git history."
+  },
+  {
+    "id": "beet-git-force-lease-protected",
+    "family": "git-history",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\bgit(?:\\s+-C\\s+[^\\s]+)?\\s+push\\b(?=(?:\\\\.|[^\\\"\\\\\\r\\n])*--force-with-lease(?:\\b|=))(?=(?:\\\\.|[^\\\"\\\\\\r\\n])*[\\s:=](?:\\\\\\\"|[\\\"'])?(?:refs/heads/)?(?:main|master|develop|production|release(?:[/_-][\\w.-]+)?)(?=(?:\\\\\\\"|[\\s:\\\"'])))",
+    "reason": "Blocks force-with-lease pushes to protected branches."
+  },
+  {
+    "id": "beet-git-force-lease-unapproved",
+    "family": "git-history",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\bgit(?:\\s+-C\\s+[^\\s]+)?\\s+push\\b(?=(?:\\\\.|[^\\\"\\\\\\r\\n])*--force-with-lease(?:\\b|=))(?!(?:\\\\.|[^\\\"\\\\\\r\\n])*(?:codex|feature)/[A-Za-z0-9._/-]+(?=(?:\\\\\\\"|[\\s:\\\"'])))",
+    "reason": "Allows force-with-lease only on codex/* or feature/* branches."
+  },
+  {
+    "id": "beet-deletion-worktree",
+    "family": "deletion",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\bgit(?:\\s+-C\\s+[^\\s]+)?\\s+worktree\\s+remove\\b|\\brm\\s+(?:-[A-Za-z]*r[A-Za-z]*f[A-Za-z]*|-[A-Za-z]*f[A-Za-z]*r[A-Za-z]*)\\s+(?:--\\s+)?[^\\r\\n;&|]+&&\\s*\\bgit(?:\\s+-C\\s+[^\\s]+)?\\s+worktree\\s+prune\\b",
+    "reason": "Blocks removal of Git worktrees used by parallel coding agents."
+  },
+  {
+    "id": "beet-deletion-repository",
+    "family": "deletion",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\brm\\s+(?:-[A-Za-z]*r[A-Za-z]*f[A-Za-z]*|-[A-Za-z]*f[A-Za-z]*r[A-Za-z]*)\\s+(?:--\\s+)?(?:\\\\\\\"|[\\\"'])?(?:\\.(?:/)?(?=(?:\\\\\\\"|[\\s;&|\\\"']|$))|\\$PWD\\b|\\$\\(pwd\\)|\\$\\(git\\s+rev-parse\\s+--show-toplevel\\)|(?:\\\\.|[^\\\"'\\r\\n])*(?:/|^)agent-warden/?(?=(?:\\\\\\\"|[\\s;&|\\\"']|$)))",
+    "reason": "Blocks recursive deletion of the current or Agent Warden repository directory."
+  }
+]

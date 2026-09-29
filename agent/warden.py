@@ -28,7 +28,7 @@ class Rule:
     tool: str  # regex on the tool name
     pattern: str  # regex on the tool call arguments (JSON text)
     reason: str
-    source: str = "built-in"  # "built-in" or the node that shared it
+    source: str = "built-in"  # "built-in", "pack:<name>", or the node that shared it
 
 
 BUILT_IN_RULES = [
@@ -99,19 +99,25 @@ def _save_shared(rules: list[Rule]) -> None:
 
 
 class Warden:
-    """Checks tool calls against built-in rules plus signatures from other nodes."""
+    """Checks calls against core, enabled-pack, and shared rules."""
 
     def __init__(self, node_name: str = "") -> None:
+        from agent.rulepacks import load_packs
+
         self.node_name = node_name or os.environ.get("WARDEN_NODE_NAME", "this-node")
+        self.pack_rules, self.pack_known_good = load_packs()
         self.shared = _load_shared()
 
     @property
     def rules(self) -> list[Rule]:
-        # Imported after Rule is defined so beet_rules can construct Rule values
-        # without creating a module-import cycle.
-        from agent.beet_rules import BEET_RULES
+        return BUILT_IN_RULES + self.pack_rules + self.shared
 
-        return BUILT_IN_RULES + BEET_RULES + self.shared
+    @property
+    def known_good(self) -> list[dict[str, Any]]:
+        """Return core and enabled-pack calls that safety rules must allow."""
+        from agent.known_good import KNOWN_GOOD
+
+        return KNOWN_GOOD + self.pack_known_good
 
     def check(self, item: dict[str, Any]) -> Decision:
         """Decide whether one model-requested function call may run."""
@@ -147,12 +153,11 @@ class Warden:
     def evolve(self, decision: Decision, item: dict[str, Any]) -> tuple[Rule, list[dict[str, Any]]]:
         """Turn one block into the broadest rule that still allows every known-good call.
 
-        Candidates go from broad to narrow. Each is replayed against KNOWN_GOOD;
-        the first with zero false alarms is adopted. The exact fragment is the
-        fallback, so evolving never makes the warden weaker.
+        Candidates go from broad to narrow. Each is replayed against the core
+        and enabled-pack known-good calls; the first with zero false alarms is
+        adopted. The exact fragment is the fallback, so evolving never makes
+        the warden weaker.
         """
-        from agent.known_good import KNOWN_GOOD
-
         narrow = self.signature_for(decision, item)
         fragment = re.sub(r"\\(.)", r"\1", narrow.pattern)
         candidates: list[tuple[str, str]] = []
@@ -171,7 +176,9 @@ class Warden:
         report = []
         for label, pattern in candidates:
             false_alarms = [
-                g["arguments"] for g in KNOWN_GOOD if re.search(pattern, g["arguments"], re.I)
+                _known_good_arguments(g)
+                for g in self.known_good
+                if _pattern_matches(pattern, _known_good_arguments(g))
             ]
             report.append({"candidate": label, "pattern": pattern, "false_alarms": len(false_alarms)})
             if not false_alarms:
@@ -187,8 +194,6 @@ class Warden:
         pattern, if it would match almost anything, or if it would block any
         call in this node's known-good set.
         """
-        from agent.known_good import KNOWN_GOOD
-
         try:
             compiled = re.compile(rule.pattern, re.I | re.S)
         except re.error as err:
@@ -196,8 +201,12 @@ class Warden:
         probes = ["", "a", "/", "read_file", '{"path": "/tmp/x"}']
         if any(compiled.search(p) for p in probes):
             return False, "pattern is too broad (matches almost anything)"
-        blocked = [g["arguments"] for g in KNOWN_GOOD
-                   if _pattern_matches(rule.pattern, g["arguments"])]
+        blocked = [
+            _known_good_arguments(g)
+            for g in self.known_good
+            if re.search(rule.tool, _known_good_tool(g), re.I)
+            and _pattern_matches(rule.pattern, _known_good_arguments(g))
+        ]
         if blocked:
             return False, f"would block {len(blocked)} normal action(s) on this node"
         return True, "passed local validation"
@@ -286,8 +295,17 @@ def _pattern_matches(pattern: str, arguments: str) -> bool:
     """
     if r"\.env\b" in pattern:
         arguments = re.sub(
-            r"(?i)(?:^|(?<=[/\\]))\.env\.(?:example|sample|template)(?=[/\\\"'\s]|$)",
+            r"(?i)(?:^|(?<=[/\\\s]))\.env\.(?:example|sample|template)(?=[/\\\"'\s]|$)",
             "ENV_TEMPLATE",
             arguments,
         )
     return bool(re.search(pattern, arguments, re.I | re.S))
+
+
+def _known_good_tool(call: dict[str, Any]) -> str:
+    return str(call.get("tool", call.get("name", "")))
+
+
+def _known_good_arguments(call: dict[str, Any]) -> str:
+    arguments = call.get("arguments", {})
+    return arguments if isinstance(arguments, str) else json.dumps(arguments)

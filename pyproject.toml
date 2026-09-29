@@ -19,7 +19,7 @@ display-name = "Agent Warden"
 color = "emerald"
 fab-format-version = 1
 flwr-version-target = "1.38.0"
-fab-include = ["agent/**/*.py", "LICENSE"]
+fab-include = ["agent/**/*.py", "agent/rulepacks/**", "LICENSE"]
 
 [tool.flwr.app.components]
 agentapp = "agent.agent_app:app"

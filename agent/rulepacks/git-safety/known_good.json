@@ -1,0 +1,7 @@
+[
+  {"tool": "Bash", "arguments": {"command": "git status --short --branch"}},
+  {"tool": "Bash", "arguments": {"command": "git diff"}},
+  {"tool": "Bash", "arguments": {"command": "git push origin codex/example"}},
+  {"tool": "exec", "arguments": {"command": "git push --force-with-lease origin feature/example"}},
+  {"tool": "Bash", "arguments": {"command": "rm -rf .next test-results node_modules build .cache"}}
+]

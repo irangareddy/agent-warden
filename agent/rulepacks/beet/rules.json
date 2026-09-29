@@ -1,0 +1,30 @@
+[
+  {
+    "id": "beet-permissions-codex-settings",
+    "family": "permissions",
+    "tool": "^(?:Edit|Write|MultiEdit|NotebookEdit|apply_patch)$",
+    "pattern": "(?:^|[/\\\\])\\.codex[/\\\\](?:config\\.toml|rules(?:[/\\\\]|[\\\"']))",
+    "reason": "Prevents agents from weakening Codex approval settings or prompt rules."
+  },
+  {
+    "id": "beet-permissions-shell-mutation",
+    "family": "permissions",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\A(?s:(?=.*(?:^|[/\\\\])\\.codex[/\\\\](?:config\\.toml|rules[/\\\\]))(?=.*(?:\\brm\\b|\\bmv\\b|\\btruncate\\b|\\bsed\\s+-i\\b|\\bperl\\s+-pi\\b|>>?|\\btee\\b|\\bwrite_text\\s*\\(|\\bopen\\s*\\([^\\r\\n]{0,1000}?(?:\\\\)*[\\\"'](?:w|a|x)(?:[bt+]{0,3})?(?:\\\\)*[\\\"']|\\*\\*\\*\\s+(?:Update|Add|Delete)\\s+File:)))",
+    "reason": "Prevents shell commands from changing Codex approval settings or deleting prompt rules."
+  },
+  {
+    "id": "beet-deletion-beet-repository",
+    "family": "deletion",
+    "tool": "^(?:Bash|exec|shell)$",
+    "pattern": "\\brm\\s+(?:-[A-Za-z]*r[A-Za-z]*f[A-Za-z]*|-[A-Za-z]*f[A-Za-z]*r[A-Za-z]*)\\s+(?:--\\s+)?(?:\\\\\\\"|[\\\"'])?(?:\\\\.|[^\\\"'\\r\\n])*(?:/|^)Beet/?(?=(?:\\\\\\\"|[\\s;&|\\\"']|$))",
+    "reason": "Blocks recursive deletion of a Beet repository directory."
+  },
+  {
+    "id": "beet-network-user-record-url",
+    "family": "network-exfiltration",
+    "tool": "^(?:web_fetch|web_search)$",
+    "pattern": "https?://[^\\\"\\s]*(?:/|=|%2[fF])USR-\\d+\\b",
+    "reason": "Blocks web requests that expose Beet user record identifiers in a URL."
+  }
+]

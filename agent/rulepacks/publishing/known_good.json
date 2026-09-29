@@ -1,0 +1,8 @@
+[
+  {"tool": "Bash", "arguments": {"command": "gh pr create --draft --base develop"}},
+  {"tool": "Bash", "arguments": {"command": "gh pr merge 727 --squash --match-head-commit abc123"}},
+  {"tool": "exec", "arguments": {"command": "npx prisma migrate dev"}},
+  {"tool": "shell", "arguments": {"command": "npx prisma migrate deploy --schema prisma/staging.prisma"}},
+  {"tool": "Bash", "arguments": {"command": "npm run deploy -- --environment staging"}},
+  {"tool": "Bash", "arguments": {"command": "fastlane pilot builds"}}
+]

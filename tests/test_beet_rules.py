@@ -9,6 +9,7 @@ from collections import Counter
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ["WARDEN_STATE_DIR"] = tempfile.mkdtemp(prefix="beet-rules-")
+os.environ["WARDEN_RULEPACKS"] = "secrets,git-safety,publishing,beet"
 
 from agent.beet_rules import BEET_RULES
 from agent.warden import BUILT_IN_RULES, Warden, _pattern_matches
