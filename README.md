@@ -140,7 +140,7 @@ The defaults are `secrets`, `git-safety` and `publishing`; `customer-data` is op
 
 What's not done yet:
 - **Rules can be phrased around.** Wagent is a layer on top of sandboxes and permissions, not a replacement for them.
-- **Shared rules are validated but not signed.** Signed rules are next.
+- **Shared rules are validated and rate-limited (3 new rules per message, 20 per node; extra rules wait for review), but not yet signed on main.** Signing (Ed25519 keys, pinned on first sight, required with `WARDEN_REQUIRE_SIGNED=1`) is built and tested on the [`signed-rules`](https://github.com/irangareddy/wagent/tree/signed-rules) branch. It isn't merged yet because node keys must survive container rebuilds first.
 - **"Ask" on Flower holds the action** but has no approval screen yet. Approval cards are next.
 - **Rules a fleet learns don't sync to local hooks yet.**
 - **Evaluated on coding agents only.** The real-history numbers come from one team, and the rules were tuned on that same data. A held-out evaluation on other teams' data is next.
