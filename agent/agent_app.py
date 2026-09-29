@@ -8,6 +8,12 @@ from flwr.agentapp import AgentApp, AgentSession
 from flwr.app import Context
 from openai import OpenAI
 
+from agent.redteam import (
+    CallOutcome,
+    is_scripted_attack,
+    run_coordinator_scripted,
+    run_node_scripted,
+)
 from agent.relay import attach_signatures, signatures_in_pull_output, strip_signatures
 from agent.utils import _conversation, _stream_response
 from agent.warden import Rule, Warden, blocked_output
@@ -101,6 +107,56 @@ def _clean_pull_result(result: Any) -> Any:
     return {**result, "output": json.dumps(output)}
 
 
+def _guarded_call(
+    agent: AgentSession,
+    item: dict[str, Any],
+    warden: Warden,
+    connector_tool_names: set[str],
+    new_rules: list[Rule],
+    accepted_this_run: list[Rule],
+    share_blocked_rule: bool = False,
+) -> CallOutcome:
+    """Rewrite, check, execute, and learn exactly as the model tool loop does."""
+    call_item = _rewrite_relay_call(item, new_rules, accepted_this_run, warden.shared)
+    decision = warden.check(call_item)
+    if not decision.allowed:
+        signature, report = warden.evolve(decision, call_item)
+        learned = warden.learn(signature)
+        if learned or (
+            share_blocked_rule
+            and not any(rule.pattern == signature.pattern for rule in new_rules)
+        ):
+            new_rules.append(signature)
+        _say(
+            agent,
+            f"🛡️ Warden BLOCKED `{decision.tool}` ({decision.family}: "
+            f"{decision.reason}) in {decision.latency_ms} ms",
+        )
+        tried = ", ".join(
+            f"{row['candidate']} ({row['false_alarms']} false alarms)" for row in report
+        )
+        _say(agent, f"🧬 Evolved rule: {signature.reason}. Tested: {tried}")
+        return CallOutcome(
+            call_item,
+            decision,
+            blocked_output(call_item, decision, signature),
+            signature,
+        )
+
+    result = (
+        agent.connectors.call(call_item)
+        if call_item.get("name") in connector_tool_names
+        else agent.grid.call(call_item)
+    )
+    if call_item.get("name") == "pull_messages" and isinstance(result, dict):
+        relay_text = signatures_in_pull_output(str(result.get("output", "")))
+        pull_accepted, pull_rejected = warden.learn_from_prompt(relay_text)
+        accepted_this_run.extend(pull_accepted)
+        _announce_rules(agent, pull_accepted, pull_rejected)
+        result = _clean_pull_result(result)
+    return CallOutcome(call_item, decision, result)
+
+
 @app.main()
 def main(agent: AgentSession, context: Context) -> None:
     """Let the model use Grid and filesystem tools, with every call checked first."""
@@ -111,6 +167,47 @@ def main(agent: AgentSession, context: Context) -> None:
     _announce_rules(agent, accepted, rejected)
     accepted_this_run = list(accepted)
     new_rules: list[Rule] = []
+
+    try:
+        connector_tools = agent.connectors.tools(["filesystem"])
+    except ValueError:
+        connector_tools = []
+    connector_tool_names = {tool["name"] for tool in connector_tools}
+    grid_tools = agent.grid.tools()
+    tools = [*grid_tools, *connector_tools]
+    print("Warden: available tools:", [t.get("name") for t in tools])
+    print("Warden: active rules:", len(warden.rules), "shared:", len(warden.shared))
+
+    if is_scripted_attack(agent.prompt):
+        guarded_call = lambda item: _guarded_call(
+            agent,
+            item,
+            warden,
+            connector_tool_names,
+            new_rules,
+            accepted_this_run,
+            True,
+        )
+        grid_tool_names = {tool.get("name") for tool in grid_tools}
+        if "push_reply_message" in grid_tool_names and "get_nodes" not in grid_tool_names:
+            run_node_scripted(
+                agent.prompt,
+                warden.node_name,
+                accepted_this_run or warden.shared,
+                guarded_call,
+                lambda text: _say(agent, text),
+            )
+        elif {"get_nodes", "push_messages", "pull_messages"}.issubset(grid_tool_names):
+            run_coordinator_scripted(
+                agent.prompt,
+                accepted_this_run,
+                guarded_call,
+                lambda text: _say(agent, text),
+                warden.shared,
+            )
+        else:
+            _say(agent, "🛡️ Scripted attack stopped: this AgentApp has no supported Grid role")
+        return
 
     client = OpenAI(
         base_url=os.environ["FLWR_RUNTIME_BASE_URL"],
@@ -125,15 +222,6 @@ def main(agent: AgentSession, context: Context) -> None:
             and isinstance(input_item.get("content"), str)
         ):
             input_item["content"] = strip_signatures(input_item["content"])
-    try:
-        connector_tools = agent.connectors.tools(["filesystem"])
-    except ValueError:
-        connector_tools = []
-    connector_tool_names = {tool["name"] for tool in connector_tools}
-    grid_tools = agent.grid.tools()
-    tools = [*grid_tools, *connector_tools]
-    print("Warden: available tools:", [t.get("name") for t in tools])
-    print("Warden: active rules:", len(warden.rules), "shared:", len(warden.shared))
 
     for _ in range(MAX_TOOL_ROUNDS):
         response, completed_event = _stream_response(client, agent, input_items, tools)
@@ -147,35 +235,13 @@ def main(agent: AgentSession, context: Context) -> None:
             return
 
         for item in tool_calls:
-            call_item = _rewrite_relay_call(
-                item, new_rules, accepted_this_run, warden.shared
+            outcome = _guarded_call(
+                agent,
+                item,
+                warden,
+                connector_tool_names,
+                new_rules,
+                accepted_this_run,
             )
-            decision = warden.check(call_item)
-            if not decision.allowed:
-                signature, report = warden.evolve(decision, call_item)
-                if warden.learn(signature):
-                    new_rules.append(signature)
-                _say(
-                    agent,
-                    f"🛡️ Warden BLOCKED `{decision.tool}` ({decision.family}: "
-                    f"{decision.reason}) in {decision.latency_ms} ms",
-                )
-                tried = ", ".join(
-                    f"{r['candidate']} ({r['false_alarms']} false alarms)" for r in report
-                )
-                _say(agent, f"🧬 Evolved rule: {signature.reason}. Tested: {tried}")
-                input_items.append(blocked_output(call_item, decision, signature))
-                continue
-            result = (
-                agent.connectors.call(call_item)
-                if call_item.get("name") in connector_tool_names
-                else agent.grid.call(call_item)
-            )
-            if call_item.get("name") == "pull_messages" and isinstance(result, dict):
-                relay_text = signatures_in_pull_output(str(result.get("output", "")))
-                pull_accepted, pull_rejected = warden.learn_from_prompt(relay_text)
-                accepted_this_run.extend(pull_accepted)
-                _announce_rules(agent, pull_accepted, pull_rejected)
-                result = _clean_pull_result(result)
-            input_items.append(result)
+            input_items.append(outcome.output)
     raise RuntimeError(f"Agent exceeded {MAX_TOOL_ROUNDS} tool rounds")
