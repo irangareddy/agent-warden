@@ -20,6 +20,26 @@ bash scripts/demo.sh
 
 The demo runs nine scenario suites and prints each step: blocking, rule evolution, poisoned-rule rejection, relay between nodes, rule packs, the Beet fleet pack, a scripted attack across a fleet, the Claude Code hook, and asking a human for context-dependent actions.
 
+## Set up your project
+
+Initialize a project-local rule pack and print the hook configuration for your
+agent harness:
+
+```bash
+python3 tools/warden.py init --project . --harness claude --write-hook --yes
+python3 tools/warden.py status --project .
+python3 tools/warden.py test --project . --tool Bash "cat .env"
+python3 tools/warden.py review --project . --list
+```
+
+`init` detects routine test/build commands, stores them as known-good calls, and
+adds a project pack alongside the default `secrets`, `git-safety`, and
+`publishing` packs. Without flags it prompts for the harness, packs, and pack
+name. Learned rules remain enforced while pending; use `review --approve ID` to
+add one to the project pack or `review --reject ID` to remove and permanently
+reject that pattern. Hook files are only changed with `--write-hook`; existing
+JSON is merged and backed up first.
+
 ## How it works
 
 ```

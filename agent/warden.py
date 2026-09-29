@@ -16,6 +16,7 @@ from typing import Any
 STATE_DIR = os.environ.get("WARDEN_STATE_DIR", "/tmp/agent-warden")
 SIGNATURES_FILE = os.path.join(STATE_DIR, "signatures.json")
 LOG_FILE = os.path.join(STATE_DIR, "decisions.jsonl")
+REJECTED_FILE = os.path.join(STATE_DIR, "rejected.json")
 SIGNATURE_PREFIX = "WARDEN_SIGNATURE::"
 
 
@@ -102,6 +103,17 @@ def _save_shared(rules: list[Rule]) -> None:
     os.makedirs(STATE_DIR, exist_ok=True)
     with open(SIGNATURES_FILE, "w", encoding="utf-8") as f:
         json.dump([asdict(r) for r in rules], f, indent=2)
+
+
+def _load_rejected() -> list[str]:
+    try:
+        with open(REJECTED_FILE, encoding="utf-8") as f:
+            value = json.load(f)
+        if not isinstance(value, list):
+            return []
+        return [pattern for pattern in value if isinstance(pattern, str)]
+    except (FileNotFoundError, json.JSONDecodeError, TypeError):
+        return []
 
 
 class Warden:
@@ -229,6 +241,9 @@ class Warden:
 
     def learn(self, rule: Rule, validate: bool = True) -> bool:
         """Adopt a rule. Rules from other nodes must pass local validation first."""
+        if rule.pattern in _load_rejected():
+            self._log_rule(rule, accepted=False, why="previously rejected by a human")
+            return False
         if any(r.pattern == rule.pattern for r in self.shared):
             return False
         if validate:
@@ -239,6 +254,15 @@ class Warden:
         self.shared.append(rule)
         _save_shared(self.shared)
         return True
+
+    def remove_shared_rule(self, rule_id: str) -> Rule | None:
+        """Remove one learned rule by id and persist the remaining shared rules."""
+        for index, rule in enumerate(self.shared):
+            if rule.id == rule_id:
+                removed = self.shared.pop(index)
+                _save_shared(self.shared)
+                return removed
+        return None
 
     def learn_from_prompt(self, prompt: str) -> tuple[list[Rule], list[tuple[Rule, str]]]:
         """Pick up signatures another node sent. Returns (accepted, rejected with reason)."""
@@ -258,7 +282,11 @@ class Warden:
             except (json.JSONDecodeError, TypeError):
                 continue
             ok, why = self.validate(rule)
-            if ok and self.learn(rule, validate=False):
+            if rule.pattern in _load_rejected():
+                why = "previously rejected by a human"
+                self._log_rule(rule, accepted=False, why=why)
+                rejected.append((rule, why))
+            elif ok and self.learn(rule, validate=False):
                 self._log_rule(rule, accepted=True, why=why)
                 accepted.append(rule)
             elif not ok:

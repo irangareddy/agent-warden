@@ -28,6 +28,9 @@ def run(harness: str) -> int:
     try:
         repo_root = Path(__file__).resolve().parent.parent
         sys.path.insert(0, str(repo_root))
+        from agent.config import load_project_config
+
+        load_project_config()
         os.environ.setdefault("WARDEN_STATE_DIR", str(Path.home() / ".agent-warden"))
 
         from hooks.adapters import ADAPTERS

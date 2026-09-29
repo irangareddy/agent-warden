@@ -49,6 +49,7 @@ run_suite 7 'Beet fleet rule pack' tests/test_beet_rules.py
 run_suite 8 'Scripted attack across a fleet' tests/test_redteam.py
 run_suite 9 'Asks a human for context-dependent actions' tests/test_approval.py
 run_suite 10 'Same rules in Codex, Cursor, Copilot, Gemini, Grok' tests/test_adapters.py
+run_suite 11 'Project setup and learned-rule review CLI' tests/test_cli.py
 
 AUDIT_FILE="$REPO_ROOT/../beet-warden-tool-calls.json"
 if [[ -f "$AUDIT_FILE" && -f "$REPO_ROOT/tools/measure_audit.py" ]]; then
