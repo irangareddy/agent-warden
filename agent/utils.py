@@ -6,7 +6,10 @@ from flwr.agentapp import AgentSession
 from flwr.app import Context
 from openai import OpenAI
 
-MODEL = "openai/gpt-5.6-terra"
+# Model used by this node's agent. Override per machine, e.g. a Nebius Token Factory
+# model id such as "dedicated/flowerai/Kimi-K2.7-Code-1OUHWL", together with the
+# SuperNode's FLWR_MODEL_API_ENDPOINT and FLWR_MODEL_API_KEY.
+MODEL = os.environ.get("WARDEN_MODEL", "openai/gpt-5.6-terra")
 STREAM_EVENT_TYPES = {
     "response.output_text.delta",
     "response.reasoning_summary_text.delta",
