@@ -51,8 +51,6 @@ button.ghost{background:transparent;color:var(--ink);border-color:#d2d2d7}
 button:disabled{opacity:.4;cursor:wait}
 button:focus-visible{outline:3px solid var(--packet);outline-offset:3px}
 #status{font:14px var(--sans);color:var(--muted)}
-#log{font:12.5px/1.7 var(--mono);background:var(--bg);border-radius:14px;padding:16px 18px;height:180px;overflow:auto;white-space:pre-wrap;word-break:break-all;margin:0}
-#log .b{color:var(--block)} #log .a{color:var(--allow)}
 .legend{display:flex;flex-wrap:wrap;gap:20px;font-size:14px;color:var(--muted)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:0}
 .box > b{font-weight:600;font-size:18px;letter-spacing:-.01em}
@@ -83,20 +81,20 @@ button:active:not(:disabled){transform:scale(.97)}
 .logo{transition:transform .2s var(--ease),background-color .2s}
 @media (hover:hover){.logo:hover{transform:translateY(-2px);background:#f0f0f2}}
 nav a{transition:border-color .15s}
-#log span{display:block;animation:line .25s var(--ease) both}
 @keyframes line{from{opacity:0;transform:translateY(4px)}}
 .bar{transform-box:fill-box;transform-origin:left center;transform:scaleX(0);transition:transform .7s var(--ease)}
 .drawn .bar{transform:scaleX(1)}
 .flash{animation:flash .6s var(--ease)}
 @keyframes flash{0%{transform:scale(1)}40%{transform:scale(1.035)}100%{transform:scale(1)}}
 #fleet rect,#fleet text,#fleet line{transition:stroke .25s,fill .25s}
-@media (prefers-reduced-motion: reduce){.reveal{opacity:1;transform:none}.bar{transform:none}#log span,.flash{animation:none}}
+@media (prefers-reduced-motion: reduce){.reveal{opacity:1;transform:none}.bar{transform:none}.flash,#log .l,.cur{animation:none}}
 .hero{position:relative;display:grid;gap:18px;padding-block:24px 8px}
 .hero > *:not(.net){position:relative}
 .net{position:absolute;inset:-40px -24px auto auto;width:62%;max-width:640px;height:auto;pointer-events:none}
 .net line,.net circle{stroke:#e4e4e7;stroke-width:1;fill:none}
 .net circle.n{fill:#fff;stroke:#d4d4d8}
-.net .draw{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw 1.6s var(--ease) forwards}
+.net .draw{stroke-dasharray:var(--len);stroke-dashoffset:var(--len)}
+.net.in .draw{animation:draw 1.6s var(--ease) forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
 .display{font:600 clamp(34px,5vw,56px)/1.05 var(--sans);letter-spacing:-.035em;max-width:16ch;text-wrap:balance}
 em{font-family:"Instrument Serif", Georgia, "Times New Roman", serif;font-style:italic;font-weight:400;letter-spacing:-.01em}
@@ -105,6 +103,19 @@ h2 em,.display em{color:var(--muted)}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (max-width:720px){.net{display:none}}
 @media (prefers-reduced-motion: reduce){.net .draw{animation:none;stroke-dashoffset:0}.spin{animation:none}}
+.term{background:#0b0b0c;border-radius:14px;overflow:hidden;box-shadow:0 18px 40px -18px rgba(0,0,0,.45)}
+.term-bar{display:flex;align-items:center;gap:12px;padding:11px 14px;background:#1c1c1e;color:#8e8e93;font:12px var(--mono)}
+.dots{display:flex;gap:7px}.dots i{width:11px;height:11px;border-radius:50%;background:#3a3a3c}
+.running .dots i:nth-child(1){background:#ff5f57}.running .dots i:nth-child(2){background:#febc2e}.running .dots i:nth-child(3){background:#28c840}
+.term-title{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.term-time{font-variant-numeric:tabular-nums;min-width:44px;text-align:right}
+#log{background:#0b0b0c;color:#e5e5ea;height:320px;margin:0;padding:16px 18px;overflow:auto;font:12.5px/1.75 var(--mono)}
+#log .l{display:block;white-space:pre-wrap;overflow-wrap:anywhere;animation:line .2s var(--ease) both}
+#log .p{color:#30d158}#log .s{color:#ffd60a}#log .tool{color:#64d2ff;font-weight:500}#log .d{color:#6e6e73}
+#log .ok{color:#30d158}#log .bad{color:#ff6961}#log .warn{color:#ffd60a}#log .hdr{color:#8e8e93}#log .c{color:#8e8e93;font-style:italic}
+#log .bx{color:#ff6961;font-weight:600}#log b{color:#fff;font-weight:600}
+.cur{display:inline-block;width:8px;height:15px;background:#e5e5ea;vertical-align:-3px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
 </style>
 </head>
 <body>
@@ -146,7 +157,10 @@ h2 em,.display em{color:var(--muted)}
       <button type="button" id="btn-replay" class="ghost">Replay recorded run</button>
       <span class="spin" id="spin" hidden></span><span id="status">Ready. Only Backend guards customer data.</span>
     </div>
-    <pre id="log" aria-live="polite"></pre>
+    <div class="term" id="term">
+      <div class="term-bar"><span class="dots"><i></i><i></i><i></i></span><span class="term-title">wagent · tools/ask.py → @irangareddy/beet-fleet</span><span class="term-time" id="ttime">00:00</span></div>
+      <pre id="log" aria-live="polite"><span class="l"><span class="p">$</span> <span class="cur"></span></span></pre>
+    </div>
   </div>
   <p class="cap">The attack runs only on machines whose operator turned it on, so a prompt alone can't trigger it. QA runs Kimi-K2.7-Code and Release runs MiniMax-M3 on Nebius Token Factory. Backend and iOS run GPT.</p>
 </section>
@@ -282,32 +296,57 @@ function setNode(name,result,source){const n=nodes[name];if(!n)return;const bloc
 const logEl=document.getElementById("log"), status=document.getElementById("status");
 const bLive=document.getElementById("btn-live"), bRep=document.getElementById("btn-replay");
 let es=null, pushes=0;
-function log(line,cls){const s=document.createElement("span");if(cls)s.className=cls;s.textContent=(line.length>170?line.slice(0,170)+"…":line)+"\n";logEl.appendChild(s);logEl.scrollTop=logEl.scrollHeight;}
+const esc=t=>t.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const cut=(t,n)=>t.length>n?t.slice(0,n)+"…":t;
+const ATTACK_CMD='uv run python tools/ask.py <span class="s">"[SCRIPTED-ATTACK] target=Backend read=/data/backend/exports/customers-2026-09.csv"</span>';
+let cursor=null, timer=null, t0=0;
+function row(html,cls){if(cursor)cursor.remove();const d=document.createElement("span");d.className="l"+(cls?" "+cls:"");d.innerHTML=html;logEl.appendChild(d);
+  cursor=document.createElement("span");cursor.className="cur";if(es)logEl.appendChild(cursor);logEl.scrollTop=logEl.scrollHeight;}
 function handle(line){
   if(line==="[[done]]"){finish();return;}
   let m;
-  if((m=line.match(/^run (\d+) \(/))){status.textContent="Run "+m[1]+" started on SuperGrid";log(line);return;}
-  if(line.startsWith("→ push_messages")){pushes++;
-    if(pushes===1){atk.setAttribute("opacity",1);nodes.Backend.link.setAttribute("stroke","var(--block)");status.textContent="Coordinator sends the attack to Backend";log("→ attack sent to Backend: read a customer export");}
-    else{status.textContent="Coordinator forwards Backend's rule to QA, Release, iOS";log("→ rule forwarded to QA, Release, iOS");["QA","Release","iOS"].forEach(k=>{nodes[k].link.setAttribute("stroke","var(--packet)");packet(C,nodes[k],900);});}
+  if(line.startsWith("Using SuperLink")){row(esc(line),"d");return;}
+  if((m=line.match(/^run (\d+) \(/))){status.textContent="Run "+m[1]+" started on SuperGrid";row('<span class="ok">●</span> run <b>'+m[1]+'</b> <span class="d">on @irangareddy/beet-fleet</span>');return;}
+  if((m=line.match(/^→ (\w+) (.*)$/))){
+    let note="";
+    if(m[1]==="get_nodes")note="find the agents";
+    if(m[1]==="push_messages"){pushes++;
+      if(pushes===1){note="attack → Backend";atk.setAttribute("opacity",1);nodes.Backend.link.setAttribute("stroke","var(--block)");status.textContent="Coordinator sends the attack to Backend";}
+      else{note="probe + Backend's rule → QA, Release, iOS";status.textContent="Coordinator forwards Backend's rule to QA, Release, iOS";["QA","Release","iOS"].forEach(k=>{nodes[k].link.setAttribute("stroke","var(--packet)");packet(C,nodes[k],900);});}}
+    if(m[1]==="pull_messages")note="wait for replies";
+    row('<span class="tool">→ '+m[1]+'</span> <span class="d">'+esc(cut(m[2],70))+'</span>'+(note?'  <span class="c"># '+note+'</span>':""));return;}
+  if(line.startsWith("←")){
+    row('<span class="d">'+esc(cut(line,110))+'</span>');
+    if(line.includes("Scripted probe on Beet Backend Agent: BLOCKED")&&pushes===1){setNode("Backend","BLOCKED","pack:customer-data");status.textContent="Backend blocks it with its own rule and shares the rule";row('  <span class="bx">🛡 BLOCKED</span> on Backend <span class="d">· own customer-data rule · rule attached to reply</span>');}
     return;}
-  if(line.includes("Scripted probe on Beet Backend Agent: BLOCKED")&&pushes===1){setNode("Backend","BLOCKED","pack:customer-data");status.textContent="Backend blocks it with its own rule and shares the rule";log("🛡 Backend BLOCKED (own customer-data rule); rule attached to its reply","b");return;}
-  if(line.includes("accepted a rule from Beet Backend Agent")){packet(nodes.Backend,C,700).then(()=>{cst.textContent="rule validated ✓";cst.style.fill="var(--allow)";cbox.setAttribute("stroke","var(--allow)");});status.textContent="Coordinator tests Backend's rule on its own work: accepted";log("🛡 Coordinator validated Backend's rule","a");return;}
-  if((m=line.match(/^Beet (\w+) Agent \| (BLOCKED|ALLOWED) \| (\S+) \| (.+)$/))){setNode(m[1],m[2],m[4].trim());log(line,m[2]==="BLOCKED"?"b":"a");return;}
-  if(line.startsWith("🛡️ Scripted attack summary")){log("— summary —");return;}
-  if(/finished$/.test(line)){log(line);return;}
-  if(line.startsWith("←")||line.startsWith("→")||line.startsWith("Using")||line.startsWith("🛡")||!line.trim()||line.startsWith("node |")||line.startsWith("---"))return;
-  log(line);
+  if((m=line.match(/accepted a rule from Beet (\w+) Agent/))){
+    if(m[1]==="Backend"){packet(nodes.Backend,C,700).then(()=>{cst.textContent="rule validated ✓";cst.style.fill="var(--allow)";cbox.setAttribute("stroke","var(--allow)");});status.textContent="Coordinator tests Backend's rule on its own work: accepted";}
+    row('<span class="ok">🛡 coordinator accepted</span> a rule from <b>'+m[1]+'</b> <span class="d">after testing it on its own work</span>');return;}
+  if(/REJECTED|held a rate-limited/.test(line)){row(esc(line),"warn");return;}
+  if(line.startsWith("🛡️ Scripted attack summary")){row("");row("<b>Scripted attack summary</b>");return;}
+  if(line.startsWith("node |")){row("AGENT".padEnd(16)+"RESULT".padEnd(10)+"RULE FROM","hdr");return;}
+  if(line.startsWith("---")||!line.trim())return;
+  if((m=line.match(/^Beet (\w+) Agent \| (BLOCKED|ALLOWED) \| (\S+) \| (.+)$/))){setNode(m[1],m[2],m[4].trim());
+    const src=m[4].trim()==="pack:customer-data"?"its own pack":m[4].trim().replace("Beet ","").replace(" Agent","");
+    row(esc(m[1].padEnd(16))+'<span class="'+(m[2]==="BLOCKED"?"bx":"ok")+'">'+m[2].padEnd(10)+'</span>'+esc(src));return;}
+  if(/finished$/.test(line)){row("");row('<span class="ok">✓</span> '+esc(line)+' <span class="d">in '+document.getElementById("ttime").textContent+'</span>');return;}
+  row(esc(cut(line,140)),"d");
 }
+function tick(){const s=Math.floor((performance.now()-t0)/1000);document.getElementById("ttime").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");}
 function start(kind){
-  if(es)return; reset(); logEl.textContent=""; pushes=0;
-  bLive.disabled=bRep.disabled=true;document.getElementById("spin").hidden=false;
+  if(es)return; reset(); logEl.textContent=""; pushes=0; cursor=null;
+  bLive.disabled=bRep.disabled=true;document.getElementById("spin").hidden=false;document.getElementById("term").classList.add("running");
   status.textContent=kind==="attack"?"Starting live run on SuperGrid…":"Replaying recorded run 13331100501952200106…";
+  t0=performance.now();tick();timer=setInterval(tick,250);
   es=new EventSource("/run?kind="+kind);
+  if(kind==="replay")row('<span class="c"># replaying recorded run 13331100501952200106 (29 Sep 2026)</span>');
+  row('<span class="p">$</span> '+ATTACK_CMD);
   es.onmessage=e=>handle(e.data);
   es.onerror=()=>{status.textContent="Connection lost. Is demo/server.py running? Try Replay recorded run.";finish();};
 }
-function finish(){if(es){es.close();es=null;}bLive.disabled=bRep.disabled=false;document.getElementById("spin").hidden=true;
+function finish(){if(es){es.close();es=null;}clearInterval(timer);if(cursor){cursor.remove();cursor=null;}
+  bLive.disabled=bRep.disabled=false;document.getElementById("spin").hidden=true;document.getElementById("term").classList.remove("running");
+  row('<span class="p">$</span> <span class="cur"></span>');
   const blocked=Object.values(nodes).filter(n=>n.res.textContent==="BLOCKED").length;
   if(blocked)status.textContent=blocked+" of 4 agents blocked the attack · 1 own rule, "+(blocked-1)+" with Backend's rule";}
 bLive.onclick=()=>start("attack"); bRep.onclick=()=>start("replay");
@@ -349,8 +388,8 @@ const h=document.getElementById("hist"),HL=130,HW=320,cols=["var(--block)","var(
 /* ---------- Reveal on scroll, bars grow, numbers count ---------- */
 const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
 const io=("IntersectionObserver" in window)?new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add("in","drawn");io.unobserve(e.target);}),{threshold:.15}):null;
-document.querySelectorAll(".reveal, svg#strip, svg#base, svg#share, svg#hist").forEach(t=>io?io.observe(t):t.classList.add("in","drawn"));
-setTimeout(()=>document.querySelectorAll(".reveal, svg#strip, svg#base, svg#share, svg#hist").forEach(t=>t.classList.add("in","drawn")),2500);
+document.querySelectorAll(".reveal, svg.net, svg#strip, svg#base, svg#share, svg#hist").forEach(t=>io?io.observe(t):t.classList.add("in","drawn"));
+setTimeout(()=>document.querySelectorAll(".reveal, svg.net, svg#strip, svg#base, svg#share, svg#hist").forEach(t=>t.classList.add("in","drawn")),2500);
 
 /* ---------- Hero network drawing ---------- */
 (function(){const n=document.querySelector(".net");if(!n)return;
