@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "collaborative-agent"
+name = "agent-warden"
 version = "0.2.0"
-description = "A Flower Collaborative AgentApp"
+description = "Collaborative agents whose tool calls pass through a warden that shares what it blocks"
 license = { file = "LICENSE" }
 requires-python = ">=3.11,<4.0"
 dependencies = ["flwr>=1.38.0,<2.0", "openai>=2.16.0,<3.0.0"]
@@ -15,7 +15,7 @@ packages = ["agent"]
 
 [tool.flwr.app]
 publisher = "flwrlabs"
-display-name = "Clinical Analytics Agent"
+display-name = "Agent Warden"
 color = "emerald"
 fab-format-version = 1
 flwr-version-target = "1.38.0"
