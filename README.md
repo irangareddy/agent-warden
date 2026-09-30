@@ -1,5 +1,7 @@
 # Wagent
 
+[Flower Hub](https://flower.ai/apps/irangareddy/wagent) · [Release v0.3.0](https://github.com/irangareddy/wagent/releases/tag/v0.3.0) · [Changelog](CHANGELOG.md)
+
 **Wagent is a warden for your AI agents: when one is stopped, the rest learn from it, without sharing any data.**
 
 It's 2 a.m. and your agents are still working. One is fixing a test, one is preparing a release, and one has just found a `.env` file with production keys that has nothing to do with its task. Nobody is watching, and a prompt that says "don't touch secrets" is a request, not a guarantee.
