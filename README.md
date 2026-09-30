@@ -1,6 +1,6 @@
 # Wagent
 
-[Flower Hub](https://flower.ai/apps/irangareddy/wagent) · [Release v0.3.0](https://github.com/irangareddy/wagent/releases/tag/v0.3.0) · [Changelog](CHANGELOG.md)
+[GitHub](https://github.com/irangareddy/wagent) · [Flower Hub](https://flower.ai/apps/irangareddy/wagent) · [Release v0.3.1](https://github.com/irangareddy/wagent/releases/tag/v0.3.1) · [Changelog](https://github.com/irangareddy/wagent/blob/main/CHANGELOG.md)
 
 **Wagent is a warden for your AI agents: when one is stopped, the rest learn from it, without sharing any data.**
 

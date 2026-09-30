@@ -4,11 +4,16 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wagent"
-version = "0.3.0"
+version = "0.3.1"
 description = "Wagent is a warden for your AI agents: when one is stopped, the rest learn from it, without sharing any data."
 license = { file = "LICENSE" }
 requires-python = ">=3.11,<4.0"
 dependencies = ["flwr>=1.38.0,<2.0", "openai>=2.16.0,<3.0.0"]
+
+[project.urls]
+Homepage = "https://flower.ai/apps/irangareddy/wagent"
+Repository = "https://github.com/irangareddy/wagent"
+Changelog = "https://github.com/irangareddy/wagent/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["agent"]

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 · September 29, 2026
+
+- Links to the GitHub repository from the Flower Hub page (README and project URLs).
+
 ## 0.3.0 · September 29, 2026
 
 First release, built at the Flower Collaborative Agent Hackathon, Stanford.
