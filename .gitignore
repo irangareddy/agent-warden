@@ -22,3 +22,6 @@ htmlcov/
 keys/
 *.fab
 .claude/
+demo/video/build/
+demo/video/.ffmpeg_path
+demo/video/audio/test.wav

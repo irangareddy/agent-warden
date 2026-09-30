@@ -1,0 +1,197 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Wagent film</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap">
+<style>html,body{margin:0;background:#070b16}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+/* Timing comes from the narration clips (see render.py). */
+const T = window.__TIMING__ || {lines:[[0.6,6.15],[6.6,11.13],[11.6,15.53],[16.0,20.03],[20.5,28.57],[29.0,32.58],[33.0,37.2]], end:38.4};
+const LOGOS = window.__LOGOS__ || {};
+const W = 1920, H = 1080, cx = W/2, cy = H/2;
+const c = document.getElementById("c"), g = c.getContext("2d");
+
+/* ---------- helpers ---------- */
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const ease=t=>1-Math.pow(1-clamp(t),3);               // ease-out cubic
+const easeIO=t=>{t=clamp(t);return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;};
+const seg=(t,a,b)=>clamp((t-a)/(b-a));                // 0..1 progress in [a,b]
+function rng(seed){return()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};}
+const R=rng(7);
+
+/* ---------- the field of agents ---------- */
+const brand=["claudecode","codex","cursor","copilot","gemini","grok","openclaw"];
+const nodes=[];
+// hand-placed ring for brand agents, seeded scatter for the rest
+const ringPts=[[-560,-250],[-120,-330],[380,-270],[620,20],[330,300],[-200,330],[-610,120]];
+ringPts.forEach((p,i)=>nodes.push({x:cx+p[0],y:cy+p[1],r:40,brand:brand[i],d:i*0.35}));
+for(let i=0;i<16;i++){
+  const a=R()*Math.PI*2, rad=260+R()*520;
+  const x=cx+Math.cos(a)*rad*1.25, y=cy+Math.sin(a)*rad*0.72;
+  if(nodes.some(n=>Math.hypot(n.x-x,n.y-y)<130))continue;
+  nodes.push({x,y,r:10+R()*6,d:0.3+R()*3.2});
+}
+const rogue={x:cx-250,y:cy+60,r:16,d:1.2,rogue:true};   // the one that drifts
+nodes.push(rogue);
+const hub={x:cx,y:cy-10};
+// the thing it shouldn't touch: the emptiest spot ~300px from the rogue
+let target=null,best=-1;
+for(let a=0;a<360;a+=10){const r=a*Math.PI/180, x=rogue.x+Math.cos(r)*300, y=rogue.y+Math.sin(r)*300;
+  if(x<260||x>W-260||y<200||y>H-240)continue;
+  const clear=Math.min(...nodes.filter(n=>!n.rogue).map(n=>Math.hypot(n.x-x,n.y-y)), Math.hypot(hub.x-x,hub.y-y));
+  if(clear>best){best=clear;target={x,y};}}
+const dirX=(target.x-rogue.x)/300, dirY=(target.y-rogue.y)/300;
+
+/* ---------- logo images ---------- */
+const imgs={};
+for(const [k,svg] of Object.entries(LOGOS)){const im=new Image();im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);imgs[k]=im;}
+window.__ready__=Promise.all([document.fonts.ready,...Object.values(imgs).map(im=>im.decode().catch(()=>{}))]);
+
+/* ---------- drawing primitives ---------- */
+function glow(x,y,r,color,a){const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,color.replace("A",a));gr.addColorStop(1,color.replace("A",0));g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,7);g.fill();}
+function text(s,x,y,size,weight,color,align="center",ls=0){g.font=`${weight} ${size}px Inter, Helvetica, Arial, sans-serif`;g.fillStyle=color;g.textAlign=align;g.textBaseline="middle";if(g.letterSpacing!==undefined)g.letterSpacing=ls+"px";g.fillText(s,x,y);if(g.letterSpacing!==undefined)g.letterSpacing="0px";}
+function key(x,y,s,a){g.save();g.translate(x,y);g.scale(s,s);g.globalAlpha=a;g.strokeStyle="#f5b83d";g.lineWidth=2.6;g.beginPath();g.arc(0,0,6,0,7);g.stroke();g.beginPath();g.moveTo(6,0);g.lineTo(20,0);g.moveTo(15,0);g.lineTo(15,5);g.moveTo(19,0);g.lineTo(19,4);g.stroke();g.restore();}
+
+function drawNode(n,t,o){
+  const a=o.alpha, x=n.x+(o.dx||0), y=n.y+(o.dy||0);
+  if(a<=0)return;
+  glow(x,y,n.r*(n.brand?2.6:4.2),"rgba(120,170,255,A)",0.28*a*(o.dim??1));
+  if(n.brand){
+    g.save();g.globalAlpha=a*(o.dim??1);
+    g.fillStyle="#ffffff";g.beginPath();g.arc(x,y,n.r,0,7);g.fill();
+    const im=imgs[n.brand];
+    if(im&&im.complete&&im.naturalWidth){const s=n.r*1.15;g.drawImage(im,x-s/2,y-s/2,s,s);}
+    g.restore();
+  }else{
+    g.save();g.globalAlpha=a*(o.dim??1);g.fillStyle=n.rogue&&o.red?"#ff6b5b":"#dfe8ff";g.beginPath();g.arc(x,y,n.r*0.55,0,7);g.fill();g.restore();
+  }
+  if(o.shield>0){ // protected ring
+    const s=ease(o.shield);g.save();g.globalAlpha=a*s;g.strokeStyle="#f5c451";g.lineWidth=2.5;g.beginPath();g.arc(x,y,(n.brand?n.r:n.r*0.9)+10+ (1-s)*18,0,7);g.stroke();
+    glow(x,y,(n.brand?n.r:n.r)+30,"rgba(245,196,81,A)",0.18*s);g.restore();
+  }
+}
+
+/* ---------- the film ---------- */
+function frame(t){
+  const L=T.lines;
+  // background
+  const bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,"#0a1022");bg.addColorStop(1,"#060913");g.fillStyle=bg;g.fillRect(0,0,W,H);
+
+  const tStop=L[3][0], tLesson=L[4][0], tCalm=L[5][0], tTitle=L[6][0];
+  // camera: slow push in, tighten on rogue in shot 3, pull back in shot 5
+  let zoom=1+0.05*seg(t,0,L[2][0]);
+  let fx=cx, fy=cy;
+  const tight=easeIO(seg(t,L[2][0],L[2][0]+2.4))*(1-easeIO(seg(t,tLesson,tLesson+2.2)));
+  zoom+=0.28*tight; fx=lerp(cx,(rogue.x+target.x)/2,tight); fy=lerp(cy,(rogue.y+target.y)/2,tight);
+  g.save();g.translate(cx,cy);g.scale(zoom,zoom);g.translate(-fx,-fy);
+
+  // rogue drift (shot 3) and stop (shot 4)
+  const drift=easeIO(seg(t,L[2][0]+0.3,tStop+0.15))*150;
+  const rdx=dirX*drift, rdy=dirY*drift;
+  const rx=rogue.x+rdx, ry=rogue.y+rdy;
+
+  // activity lines between nearby agents (shot 2 onward, fade under tension)
+  const busy=seg(t,L[1][0]-0.2,L[1][0]+1.2)*(1-0.75*easeIO(seg(t,L[2][0],L[2][0]+1.2)))+0.75*easeIO(seg(t,tCalm-1,tCalm+1));
+  if(busy>0){
+    g.lineWidth=1.2;
+    for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+      const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d>430||a.rogue||b.rogue)continue;
+      g.strokeStyle=`rgba(140,175,255,${0.13*busy})`;g.beginPath();g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);g.stroke();
+      const p=((t*0.35+i*0.13+j*0.07)%1);           // data pulse travelling the line
+      glow(lerp(a.x,b.x,p),lerp(a.y,b.y,p),6,"rgba(170,200,255,A)",0.55*busy);
+    }
+  }
+
+  // the lesson thread: rogue -> hub -> every agent (shot 5)
+  const toHub=ease(seg(t,tLesson+0.2,tLesson+1.6));
+  if(toHub>0){
+    g.strokeStyle="rgba(245,196,81,0.9)";g.lineWidth=3;g.beginPath();g.moveTo(rx,ry);g.lineTo(lerp(rx,hub.x,toHub),lerp(ry,hub.y,toHub));g.stroke();
+    glow(lerp(rx,hub.x,toHub),lerp(ry,hub.y,toHub),26,"rgba(245,196,81,A)",0.8*(1-seg(t,tLesson+1.6,tLesson+2)));
+  }
+  const order=nodes.filter(n=>!n.rogue).map(n=>({n,d:Math.hypot(n.x-hub.x,n.y-hub.y)})).sort((a,b)=>a.d-b.d);
+  const spreadStart=tLesson+1.7, spreadDur=3.2;
+  order.forEach((o,k)=>{
+    const s0=spreadStart+spreadDur*k/order.length, p=ease(seg(t,s0,s0+0.7));
+    if(p<=0)return;
+    const fade=1-0.8*easeIO(seg(t,tCalm+0.8,tCalm+2.5));
+    g.strokeStyle=`rgba(245,196,81,${0.75*fade})`;g.lineWidth=2;g.beginPath();g.moveTo(hub.x,hub.y);g.lineTo(lerp(hub.x,o.n.x,p),lerp(hub.y,o.n.y,p));g.stroke();
+    if(p<1)glow(lerp(hub.x,o.n.x,p),lerp(hub.y,o.n.y,p),14,"rgba(255,214,120,A)",0.9);
+    o.n._shield=seg(t,s0+0.55,s0+1.2);
+  });
+
+  // agents
+  const dimAll=1-0.6*easeIO(seg(t,L[2][0]+0.4,L[2][0]+1.6))*(1-easeIO(seg(t,tLesson+1.5,tLesson+3)));
+  for(const n of nodes){
+    const appear=ease(seg(t,0.2+n.d*0.55,0.2+n.d*0.55+0.9));
+    if(n.rogue){
+      drawNode(n,t,{alpha:appear,dx:rdx,dy:rdy,red:t>tStop,shield:0});
+    }else drawNode(n,t,{alpha:appear,dim:dimAll,shield:n._shield||0});
+  }
+  // keys beside agents (shot 2)
+  const keysIn=seg(t,L[1][0]+0.2,L[1][0]+1.6);
+  if(keysIn>0){nodes.filter(n=>n.brand).forEach((n,i)=>{const p=ease(seg(t,L[1][0]+0.2+i*0.12,L[1][0]+0.9+i*0.12));key(n.x+n.r+10,n.y-n.r-6,1.1,p*(1-0.7*seg(t,L[2][0],L[2][0]+1))*(1-seg(t,tCalm,tCalm+1)));});}
+
+  // the thing it reaches for: a red padlock in empty space
+  const edge=seg(t,L[2][0]+0.2,L[2][0]+1.3)*(1-seg(t,tLesson,tLesson+1.5));
+  if(edge>0){const px=target.x,py=target.y;
+    glow(px,py,120,"rgba(255,80,70,A)",0.35*edge);
+    g.save();g.globalAlpha=edge;g.strokeStyle="#ff6b5f";g.lineWidth=5;g.lineCap="round";
+    g.beginPath();g.arc(px,py-16,15,Math.PI,0);g.lineTo(px+15,py-4);g.moveTo(px-15,py-16);g.lineTo(px-15,py-4);g.stroke();
+    g.fillStyle="#ff6b5f";g.beginPath();g.roundRect(px-24,py-6,48,38,7);g.fill();
+    g.fillStyle="#0a1022";g.beginPath();g.arc(px,py+10,5,0,7);g.fill();g.fillRect(px-2,py+10,4,10);g.restore();}
+
+  // stop ring (shot 4)
+  const stop=seg(t,tStop,tStop+0.35);
+  if(stop>0){
+    const s=ease(stop), fade=1-seg(t,tLesson+2,tLesson+3.5);
+    g.save();g.globalAlpha=fade;g.strokeStyle="#ff5a4e";g.lineWidth=4;g.beginPath();g.arc(rx,ry,lerp(90,34,s),0,7);g.stroke();
+    const rip=seg(t,tStop+0.35,tStop+1.4);if(rip>0&&rip<1){g.globalAlpha=(1-rip)*0.6*fade;g.lineWidth=2;g.beginPath();g.arc(rx,ry,34+rip*70,0,7);g.stroke();}
+    g.restore();
+    const lab=ease(seg(t,tStop+0.4,tStop+0.9))*fade;
+    if(lab>0){g.save();g.globalAlpha=lab;text("Blocked",rx,ry+70,26,600,"#ff6b5f");g.restore();}
+  }
+
+  // Flower at the centre of the lesson's path
+  const hubIn=ease(seg(t,tLesson,tLesson+0.8))*(1-seg(t,tTitle-0.6,tTitle));
+  if(hubIn>0){g.save();g.globalAlpha=hubIn;glow(hub.x,hub.y,70,"rgba(245,196,81,A)",0.25);g.fillStyle="#ffffff";g.beginPath();g.arc(hub.x,hub.y,34,0,7);g.fill();
+    const fl=imgs.flower;if(fl&&fl.naturalWidth){g.drawImage(fl,hub.x-22,hub.y-19,44,38.6);}g.restore();}
+  g.restore(); // camera
+
+  // vignette
+  const vg=g.createRadialGradient(cx,cy,H*0.35,cx,cy,H*0.95);vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,`rgba(0,0,0,${0.55+0.25*tight})`);g.fillStyle=vg;g.fillRect(0,0,W,H);
+
+  // captions (few, quiet) over a soft scrim
+  const capOn=Math.max(seg(t,L[1][0]+1.0,L[1][0]+1.5)*(1-seg(t,L[1][1],L[1][1]+0.5)), seg(t,L[4][0]+2.4,L[4][0]+2.9)*(1-seg(t,L[5][1]+0.3,L[5][1]+0.8)));
+  if(capOn>0){const sc=g.createLinearGradient(0,H-300,0,H);sc.addColorStop(0,"rgba(6,9,19,0)");sc.addColorStop(1,`rgba(6,9,19,${0.85*capOn})`);g.fillStyle=sc;g.fillRect(0,H-300,W,300);}
+  const cap=(s,a,b,y=H-120,size=34,color="rgba(235,240,255,A)")=>{const p=seg(t,a,a+0.5)*(1-seg(t,b-0.5,b));if(p>0){g.save();g.globalAlpha=p;text(s,cx,y+(1-ease(seg(t,a,a+0.5)))*12,size,500,color.replace("A",1),"center",-0.3);g.restore();}};
+  cap("with real keys",L[1][0]+1.2,L[1][1]+0.2);
+  cap("only the lesson travels",L[4][0]+2.6,L[4][0]+5.6);
+  cap("never the data",L[4][0]+5.4,L[4][1]+0.4);
+  cap("One catch.  Every agent protected.",L[5][0]+0.2,L[5][1]+0.5,H-120,40);
+
+  // title card (shot 7): fade to white
+  const wht=easeIO(seg(t,tTitle-0.5,tTitle+0.7));
+  if(wht>0){
+    g.fillStyle=`rgba(255,255,255,${wht})`;g.fillRect(0,0,W,H);
+    const p=ease(seg(t,tTitle+0.3,tTitle+1.1)), p2=ease(seg(t,tTitle+0.9,tTitle+1.7)), p3=ease(seg(t,tTitle+1.5,tTitle+2.3));
+    g.save();g.globalAlpha=p;text("Wagent",cx,cy-40+(1-p)*16,150,700,"#0d0d0d","center",-5);g.restore();
+    g.save();g.globalAlpha=p2;text("A warden for your AI agents.",cx,cy+75,40,500,"#5b5b60","center",-0.6);g.restore();
+    if(p3>0){g.save();g.globalAlpha=p3;const fl=imgs.flowerDark;const w=148;text("Built on",cx-26,cy+175,24,500,"#8a8a90","right");if(fl&&fl.naturalWidth)g.drawImage(fl,cx-12,cy+160,34,30);text("Flower",cx+30,cy+175,24,600,"#3a3a40","left");g.restore();}
+  }
+  // soft fade in at the very start and out at the very end
+  const fin=1-seg(t,0,0.6), fout=seg(t,T.end-0.5,T.end);
+  if(fin>0){g.fillStyle=`rgba(7,11,22,${fin})`;g.fillRect(0,0,W,H);}
+  if(fout>0){g.fillStyle=`rgba(255,255,255,${fout})`;g.fillRect(0,0,W,H);}
+}
+window.renderAt=t=>{frame(t);};
+window.snap=(t,q)=>{frame(t);return c.toDataURL("image/jpeg",q||0.93);};
+if(!window.__TIMING__){window.__ready__.then(()=>{const t0=performance.now();(function loop(){frame(((performance.now()-t0)/1000)%T.end);requestAnimationFrame(loop);})();});}
+</script>
+</body>
+</html>
