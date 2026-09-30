@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2 · September 29, 2026
+
+- Show full GitHub, Flower Hub, release and changelog addresses at the top of the README, so they read as links on the Flower Hub page.
+
 ## 0.3.1 · September 29, 2026
 
 - Links to the GitHub repository from the Flower Hub page (README and project URLs).
