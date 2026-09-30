@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.4 · September 29, 2026
+
+- Show the Discord alerts screenshot on the Flower Hub page (image served from GitHub).
+
 ## 0.3.3 · September 29, 2026
 
 - Fix the Flower Hub page failing to load: write the top links as standard Markdown links.
