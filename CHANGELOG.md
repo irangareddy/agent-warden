@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.5 · September 29, 2026
+
+- A 1-minute narrated film, linked from the top of the README: https://irangareddy.github.io/wagent/film/
+
 ## 0.3.4 · September 29, 2026
 
 - Show the Discord alerts screenshot on the Flower Hub page (image served from GitHub).
