@@ -24,6 +24,14 @@ await page.goto("file://" + path.join(HERE, "scene.html"));
 await page.evaluate("window.__ready__"); await page.waitForTimeout(400);
 const snap = async (sec, q) => Buffer.from((await page.evaluate(([s, qq]) => window.snap(s, qq), [sec, q])).split(",")[1], "base64");
 
+if (process.argv.includes("--poster")) {
+  const at = lines[5][0] + 5.6;                      // the rule spreading through Flower
+  const data = await page.evaluate(([s, q]) => window.poster(s, q), [at, 0.9]);
+  mkdirSync(path.join(HERE, "../../docs"), { recursive: true });
+  writeFileSync(path.join(HERE, "../../docs/film-poster.jpg"), Buffer.from(data.split(",")[1], "base64"));
+  console.log("poster at", at.toFixed(1), "s -> docs/film-poster.jpg");
+  await browser.close(); process.exit(0);
+}
 if (process.argv.includes("--stills")) {
   const picks = lines.map(([a, b]) => a + (b - a) * 0.7);
   for (const [i, s] of picks.entries()) writeFileSync(path.join(HERE, "build", `still_${String(i).padStart(2, "0")}.jpg`), await snap(s, 0.88));

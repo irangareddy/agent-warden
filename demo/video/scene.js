@@ -261,5 +261,16 @@ function frame(t) {
 }
 
 window.snap = (t, q) => { frame(t); return cv.toDataURL("image/jpeg", q || 0.92); };
+// poster: one frame plus a play button and runtime, for the README
+window.poster = (t, q) => {
+  frame(t);
+  g.fillStyle = "rgba(5,8,15,0.35)"; g.fillRect(0, 0, W, H);
+  const x = W / 2, y = H / 2 - 40;
+  g.save(); g.shadowColor = "rgba(0,0,0,0.5)"; g.shadowBlur = 50; g.fillStyle = "#ffffff"; g.beginPath(); g.arc(x, y, 92, 0, 7); g.fill(); g.restore();
+  g.fillStyle = "#0b1224"; g.beginPath(); g.moveTo(x - 26, y - 40); g.lineTo(x + 46, y); g.lineTo(x - 26, y + 40); g.closePath(); g.fill();
+  text("Watch the Wagent film", x, y + 150, 44, 700, "#ffffff", "center", SANS, -0.8);
+  text("1 minute · with narration", x, y + 206, 26, 500, "rgba(255,255,255,0.75)", "center");
+  return cv.toDataURL("image/jpeg", q || 0.9);
+};
 window.__ready__ = document.fonts.ready;
 if (!window.__FILM__) document.fonts.ready.then(() => { const t0 = performance.now(); (function loop() { frame(((performance.now() - t0) / 1000) % FILM.end); requestAnimationFrame(loop); })(); });

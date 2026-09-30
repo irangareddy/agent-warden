@@ -4,6 +4,11 @@
 - **Flower Hub:** [https://flower.ai/apps/irangareddy/wagent](https://flower.ai/apps/irangareddy/wagent)
 - **Latest release:** [https://github.com/irangareddy/wagent/releases/latest](https://github.com/irangareddy/wagent/releases/latest)
 - **Changelog:** [https://github.com/irangareddy/wagent/blob/main/CHANGELOG.md](https://github.com/irangareddy/wagent/blob/main/CHANGELOG.md)
+- **Film:** [https://irangareddy.github.io/wagent/film/](https://irangareddy.github.io/wagent/film/)
+
+[![Watch the Wagent film (1 minute, with narration)](https://raw.githubusercontent.com/irangareddy/wagent/main/docs/film-poster.jpg)](https://irangareddy.github.io/wagent/film/)
+
+**▶ Watch the 1-minute film:** [https://irangareddy.github.io/wagent/film/](https://irangareddy.github.io/wagent/film/)
 
 **Wagent is a warden for your AI agents: when one is stopped, the rest learn from it, without sharing any data.**
 

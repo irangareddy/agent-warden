@@ -5,7 +5,8 @@
   "scripts": {
     "voice": "node tts.mjs",
     "render": "node render.mjs",
-    "stills": "node render.mjs --stills"
+    "stills": "node render.mjs --stills",
+    "poster": "node render.mjs --poster"
   },
   "dependencies": {
     "ffmpeg-static": "^5.2.0",
