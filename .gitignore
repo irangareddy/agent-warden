@@ -25,3 +25,4 @@ keys/
 demo/video/build/
 demo/video/.ffmpeg_path
 demo/video/audio/test.wav
+demo/video/node_modules/

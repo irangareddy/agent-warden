@@ -1,0 +1,14 @@
+{
+  "name": "wagent-film",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "voice": "node tts.mjs",
+    "render": "node render.mjs",
+    "stills": "node render.mjs --stills"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "playwright-core": "^1.47.0"
+  }
+}

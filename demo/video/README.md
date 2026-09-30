@@ -1,14 +1,18 @@
-# Wagent film (38 s)
+# Wagent film (64 s)
 
-`wagent-film.mp4` is the 1080p concept film. Everything here is editable:
+`wagent-film.mp4`: 1080p, 30 fps, narrated. Plays in about 42 seconds at 1.5×.
+Pure JavaScript; every agent and icon is drawn in code (no images).
 
-- `scene.html` draws every frame from a timestamp (open it in a browser to watch a live loop).
-- `tts.py` writes the narration, one clip per line (OpenRouter `openai/gpt-audio`, key from the environment).
-- `render.py` trims timing from the narration, renders frames with Chrome and muxes the audio:
+| File | What it does |
+|---|---|
+| `script.mjs` | The narration lines and the headline shown with each |
+| `tts.mjs` | Narration via OpenRouter `openai/gpt-audio`; checks each clip's transcript against the script and retries mismatches |
+| `scene.js` | Draws any frame from a timestamp (open `scene.html` in a browser to watch a live loop) |
+| `render.mjs` | Renders frames in Chrome, mixes and normalises the narration, encodes the MP4 |
 
 ```bash
-OPENROUTER_API_KEY=... python3.12 demo/video/tts.py      # only if the script changes
-uv run --no-project --with playwright --with imageio-ffmpeg python demo/video/render.py
+npm install
+OPENROUTER_API_KEY=... npm run voice   # only when script.mjs changes
+npm run stills                         # one still per shot in build/
+npm run render                         # wagent-film.mp4
 ```
-
-Logos are trademarks of their owners and are shown to indicate compatibility.
